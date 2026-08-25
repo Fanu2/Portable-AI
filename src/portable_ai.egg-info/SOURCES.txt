@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+src/portable_ai.egg-info/PKG-INFO
+src/portable_ai.egg-info/SOURCES.txt
+src/portable_ai.egg-info/dependency_links.txt
+src/portable_ai.egg-info/top_level.txt
+src/portable_ai/contracts/capability.py
+src/portable_ai/contracts/hardware_profile.py
+src/portable_ai/contracts/model_descriptor.py
+src/portable_ai/contracts/runtime_provider.py
