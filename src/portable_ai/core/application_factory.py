@@ -108,6 +108,14 @@ from portable_ai.services.dashboard_service import (
     DashboardService,
 )
 
+from portable_ai.services.model_compatibility_service import (
+    ModelCompatibilityService,
+)
+
+from portable_ai.services.hardware_model_compatibility_service import (
+    HardwareModelCompatibilityService,
+)
+
 
 class ApplicationFactory:
     """
@@ -245,7 +253,18 @@ class ApplicationFactory:
             ExecutionResultValidator(),
         )
 
-        hardware_detection = HardwareDetectionService()
+        hardware_detection = (
+            HardwareDetectionService()
+        )
+
+        hardware_compatibility = (
+            HardwareModelCompatibilityService()
+        )
+
+        model_compatibility = ModelCompatibilityService(
+            model_registry,
+            hardware_compatibility,
+        )
 
         dashboard = DashboardService(
             runtime,
@@ -263,6 +282,7 @@ class ApplicationFactory:
             capabilities=capability_service,
             model_catalog=model_catalog,
             model_inventory=model_inventory,
+            model_compatibility=model_compatibility,
             model_selection=model_selection,
             execution=execution,
             hardware_detection=hardware_detection,

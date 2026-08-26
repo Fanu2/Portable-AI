@@ -41,6 +41,10 @@ from portable_ai.services.model_inventory_service import (
     ModelInventoryService,
 )
 
+from portable_ai.services.model_compatibility_service import (
+    ModelCompatibilityService,
+)
+
 from portable_ai.services.runtime_model_selection_service import (
     RuntimeModelSelectionService,
 )
@@ -73,6 +77,7 @@ class ApplicationContext:
     # Model services
     model_catalog: Optional[ModelCatalogService] = None
     model_inventory: Optional[ModelInventoryService] = None
+    model_compatibility: Optional[ModelCompatibilityService] = None
     model_selection: Optional[RuntimeModelSelectionService] = None
 
     # Execution services

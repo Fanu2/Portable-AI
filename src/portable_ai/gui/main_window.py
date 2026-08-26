@@ -38,21 +38,29 @@ class MainWindow(QMainWindow):
 
         self._setup_dashboard()
 
-        print("MAIN WINDOW: showing")
+        print(
+            "MAIN WINDOW: showing"
+        )
 
         self.show()
 
-        print("MAIN WINDOW: shown")
+        print(
+            "MAIN WINDOW: shown"
+        )
 
     def _setup_dashboard(
         self,
     ) -> None:
 
-        print("DASHBOARD SETUP START")
+        print(
+            "DASHBOARD SETUP START"
+        )
 
         if self._context is None:
 
-            print("NO CONTEXT")
+            print(
+                "NO CONTEXT"
+            )
 
             self.setCentralWidget(
                 QLabel(
@@ -62,7 +70,9 @@ class MainWindow(QMainWindow):
 
             return
 
-        print("CONTEXT FOUND")
+        print(
+            "CONTEXT FOUND"
+        )
 
         if hasattr(
             self._context,
@@ -86,6 +96,16 @@ class MainWindow(QMainWindow):
                     model_inventory_service=getattr(
                         self._context,
                         "model_inventory",
+                        None,
+                    ),
+                    model_compatibility_service=getattr(
+                        self._context,
+                        "model_compatibility",
+                        None,
+                    ),
+                    runtime_control_service=getattr(
+                        self._context,
+                        "runtime_control",
                         None,
                     ),
                 )
