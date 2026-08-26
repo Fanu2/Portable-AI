@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 
 class ModelManagementWidget(QWidget):
     """
-    Displays model management information.
+    Displays model management and compatibility information.
     """
 
     def __init__(
@@ -93,6 +93,32 @@ class ModelManagementWidget(QWidget):
                     )
                     + "\n"
                 )
+
+                minimum_ram = getattr(
+                    model,
+                    "minimum_ram_gb",
+                    None,
+                )
+
+                if minimum_ram is not None:
+
+                    text += (
+                        f"RAM Required: "
+                        f"{minimum_ram} GB\n"
+                    )
+
+                available_ram = getattr(
+                    hardware,
+                    "ram_gb",
+                    None,
+                )
+
+                if available_ram is not None:
+
+                    text += (
+                        f"RAM Available: "
+                        f"{available_ram} GB\n"
+                    )
 
             text += "\n"
 

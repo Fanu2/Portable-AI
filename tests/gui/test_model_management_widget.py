@@ -9,6 +9,7 @@ class FakeModel:
     format = "GGUF"
     size_gb = 2.7
     installed = False
+    minimum_ram_gb = 4.0
 
 
 class FakeInventoryService:
@@ -20,6 +21,34 @@ class FakeInventoryService:
         return [
             FakeModel()
         ]
+
+
+class FakeHardware:
+
+    ram_gb = 8.0
+
+
+class FakeHardwareService:
+
+    def detect(
+        self,
+    ):
+
+        return FakeHardware()
+
+
+class FakeCompatibilityService:
+
+    def can_run(
+        self,
+        model,
+        hardware,
+    ):
+
+        return (
+            hardware.ram_gb
+            >= model.minimum_ram_gb
+        )
 
 
 def test_model_management_widget_displays_model(
@@ -48,5 +77,37 @@ def test_model_management_widget_displays_model(
 
     assert (
         "Installed: No"
+        in text
+    )
+
+
+def test_model_management_widget_displays_compatibility(
+    qtbot,
+):
+
+    widget = ModelManagementWidget(
+        FakeInventoryService(),
+        FakeCompatibilityService(),
+        FakeHardwareService(),
+    )
+
+    qtbot.addWidget(
+        widget
+    )
+
+    text = widget._label.text()
+
+    assert (
+        "Compatibility: Ready"
+        in text
+    )
+
+    assert (
+        "RAM Required: 4.0 GB"
+        in text
+    )
+
+    assert (
+        "RAM Available: 8.0 GB"
         in text
     )
