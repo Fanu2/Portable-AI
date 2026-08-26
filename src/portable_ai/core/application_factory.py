@@ -32,6 +32,14 @@ from portable_ai.runtimes.ollama_provider import (
     OllamaRuntimeProvider,
 )
 
+from portable_ai.models.capability_registry import (
+    CapabilityRegistry,
+)
+
+from portable_ai.services.capability_service import (
+    CapabilityService,
+)
+
 from portable_ai.services.runtime_service import (
     RuntimeService,
 )
@@ -65,6 +73,7 @@ class ApplicationFactory:
         self._root = root
 
     def create(self) -> ApplicationContext:
+
         config_manager = LocalConfigManager(
             self._root / "config" / "portable-ai.json"
         )
@@ -105,6 +114,17 @@ class ApplicationFactory:
             runtime_health,
         )
 
+        capability_registry = CapabilityRegistry()
+
+        capability_service = CapabilityService(
+            capability_registry,
+        )
+
+        capability_service.register_runtime_capabilities(
+            "ollama",
+            ollama_provider.capabilities(),
+        )
+
         dashboard = DashboardService(
             runtime,
             runtime_status,
@@ -118,4 +138,5 @@ class ApplicationFactory:
             runtime=runtime,
             dashboard=dashboard,
             monitor=runtime_monitor,
+            capabilities=capability_service,
         )

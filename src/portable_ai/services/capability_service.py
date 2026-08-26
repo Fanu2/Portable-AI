@@ -9,7 +9,7 @@ from portable_ai.models.capability_registry import (
 
 class CapabilityService:
     """
-    Provides runtime capability information.
+    Provides capability information.
     """
 
     def __init__(
@@ -32,3 +32,29 @@ class CapabilityService:
 
     def available(self):
         return self._registry.all()
+
+    def register_runtime_capabilities(
+        self,
+        runtime_name: str,
+        capabilities: set[str],
+    ) -> None:
+        for capability in capabilities:
+            self.register(
+                f"{runtime_name}:{capability}",
+                f"{runtime_name} supports {capability}",
+            )
+
+    def for_runtime(
+        self,
+        runtime_name: str,
+    ):
+        prefix = (
+            runtime_name
+            + ":"
+        )
+
+        return [
+            capability
+            for capability in self._registry.all()
+            if capability.name.startswith(prefix)
+        ]

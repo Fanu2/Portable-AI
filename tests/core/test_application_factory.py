@@ -16,6 +16,7 @@ def test_application_factory_creates_context(tmp_path):
     assert context.runtime is not None
     assert context.dashboard is not None
     assert context.monitor is not None
+    assert context.capabilities is not None
 
 
 def test_application_factory_registers_ollama(tmp_path):
@@ -51,3 +52,29 @@ def test_application_factory_exposes_monitor(tmp_path):
     assert snapshot.health is not None
 
     assert snapshot.checked_at is not None
+
+
+def test_application_factory_exposes_capabilities(
+    tmp_path,
+):
+    factory = ApplicationFactory(
+        Path(tmp_path)
+    )
+
+    context = factory.create()
+
+    capabilities = (
+        context.capabilities.for_runtime(
+            "ollama"
+        )
+    )
+
+    names = [
+        capability.name
+        for capability in capabilities
+    ]
+
+    assert (
+        "ollama:text_generation"
+        in names
+    )

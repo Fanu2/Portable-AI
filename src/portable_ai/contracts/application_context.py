@@ -25,6 +25,10 @@ from portable_ai.services.runtime_monitor_service import (
     RuntimeMonitorService,
 )
 
+from portable_ai.services.capability_service import (
+    CapabilityService,
+)
+
 
 @dataclass(frozen=True)
 class ApplicationContext:
@@ -36,7 +40,8 @@ class ApplicationContext:
     storage: StorageService
     hardware: HardwareService
 
-    # Runtime and GUI preparation services
+    # Runtime, GUI, and capability services
     runtime: Optional[RuntimeService] = None
     dashboard: Optional[DashboardService] = None
     monitor: Optional[RuntimeMonitorService] = None
+    capabilities: Optional[CapabilityService] = None
