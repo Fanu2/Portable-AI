@@ -21,3 +21,5 @@ class ModelResource:
     available: bool = True
 
     installed: bool = False
+
+    minimum_ram_gb: Optional[float] = None

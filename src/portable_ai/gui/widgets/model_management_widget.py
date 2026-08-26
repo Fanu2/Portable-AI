@@ -25,9 +25,7 @@ class ModelManagementWidget(QWidget):
             compatibility_service
         )
 
-        self._hardware = (
-            hardware_service
-        )
+        self._hardware = hardware_service
 
         self._label = QLabel()
 
@@ -56,6 +54,14 @@ class ModelManagementWidget(QWidget):
             "----------------\n"
         )
 
+        hardware = None
+
+        if self._hardware is not None:
+
+            hardware = (
+                self._hardware.detect()
+            )
+
         for model in models:
 
             text += (
@@ -66,11 +72,26 @@ class ModelManagementWidget(QWidget):
                 f"{'Yes' if model.installed else 'No'}\n"
             )
 
-            if self._compatibility is not None:
+            if (
+                self._compatibility is not None
+                and hardware is not None
+            ):
+
+                compatible = (
+                    self._compatibility.can_run(
+                        model,
+                        hardware,
+                    )
+                )
 
                 text += (
                     "Compatibility: "
-                    "Checked\n"
+                    + (
+                        "Ready"
+                        if compatible
+                        else "Not suitable"
+                    )
+                    + "\n"
                 )
 
             text += "\n"
