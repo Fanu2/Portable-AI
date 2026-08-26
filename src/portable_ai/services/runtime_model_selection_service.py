@@ -1,3 +1,7 @@
+from portable_ai.contracts.hardware_info import (
+    HardwareInfo,
+)
+
 from portable_ai.models.model_registry import (
     ModelRegistry,
 )
@@ -12,6 +16,10 @@ from portable_ai.models.model_selection_result import (
 
 from portable_ai.services.runtime_model_compatibility_service import (
     RuntimeModelCompatibilityService,
+)
+
+from portable_ai.services.hardware_model_compatibility_service import (
+    HardwareModelCompatibilityService,
 )
 
 
@@ -33,6 +41,10 @@ class RuntimeModelSelectionService:
                 model_registry,
                 runtime_registry,
             )
+        )
+
+        self._hardware_compatibility = (
+            HardwareModelCompatibilityService()
         )
 
     def select(
@@ -63,5 +75,44 @@ class RuntimeModelSelectionService:
                         "and runtime"
                     ),
                 )
+
+        return None
+
+    def select_with_hardware(
+        self,
+        capability: str,
+        runtime_name: str,
+        hardware: HardwareInfo,
+    ):
+
+        models = (
+            self._models.available_for_capability(
+                capability
+            )
+        )
+
+        for model in models:
+
+            if not self._compatibility.can_execute(
+                model.name,
+                runtime_name,
+            ):
+                continue
+
+            if not self._hardware_compatibility.can_run(
+                model,
+                hardware,
+            ):
+                continue
+
+            return ModelSelectionResult(
+                model=model,
+                runtime=runtime_name,
+                capability=capability,
+                reason=(
+                    "matched capability, "
+                    "runtime, and hardware"
+                ),
+            )
 
         return None

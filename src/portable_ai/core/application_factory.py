@@ -92,6 +92,10 @@ from portable_ai.services.execution_result_validator import (
     ExecutionResultValidator,
 )
 
+from portable_ai.services.hardware_detection_service import (
+    HardwareDetectionService,
+)
+
 from portable_ai.services.dashboard_service import (
     DashboardService,
 )
@@ -195,6 +199,8 @@ class ApplicationFactory:
             ExecutionResultValidator(),
         )
 
+        hardware_detection = HardwareDetectionService()
+
         dashboard = DashboardService(
             runtime,
             runtime_status,
@@ -212,4 +218,5 @@ class ApplicationFactory:
             model_selection=model_selection,
             model_catalog=model_catalog,
             execution=execution,
+            hardware_detection=hardware_detection,
         )

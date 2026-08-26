@@ -1,3 +1,7 @@
+from portable_ai.contracts.hardware_info import (
+    HardwareInfo,
+)
+
 from portable_ai.contracts.model_descriptor import (
     ModelDescriptor,
 )
@@ -25,7 +29,7 @@ class FakeRuntime:
         }
 
 
-def test_runtime_aware_model_selection():
+def create_service():
 
     models = ModelRegistry()
 
@@ -42,6 +46,7 @@ def test_runtime_aware_model_selection():
                     "text_generation",
                 }
             ),
+            minimum_ram_gb=8.0,
         )
     )
 
@@ -51,10 +56,15 @@ def test_runtime_aware_model_selection():
         FakeRuntime()
     )
 
-    service = RuntimeModelSelectionService(
+    return RuntimeModelSelectionService(
         models,
         runtimes,
     )
+
+
+def test_runtime_aware_model_selection():
+
+    service = create_service()
 
     result = service.select(
         "text_generation",
@@ -81,4 +91,42 @@ def test_runtime_aware_model_selection():
     assert (
         result.reason
         == "matched capability and runtime"
+    )
+
+
+def test_runtime_model_selection_with_hardware():
+
+    service = create_service()
+
+    hardware = HardwareInfo(
+        cpu_cores=8,
+        ram_gb=16.0,
+    )
+
+    result = service.select_with_hardware(
+        "text_generation",
+        "ollama",
+        hardware,
+    )
+
+    assert result is not None
+
+    assert (
+        result.model.name
+        == "Qwen3.5-4B"
+    )
+
+    assert (
+        result.runtime
+        == "ollama"
+    )
+
+    assert (
+        result.capability
+        == "text_generation"
+    )
+
+    assert (
+        result.reason
+        == "matched capability, runtime, and hardware"
     )

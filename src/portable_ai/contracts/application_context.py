@@ -13,6 +13,10 @@ from portable_ai.services.hardware_service import (
     HardwareService,
 )
 
+from portable_ai.services.hardware_detection_service import (
+    HardwareDetectionService,
+)
+
 from portable_ai.services.runtime_service import (
     RuntimeService,
 )
@@ -52,7 +56,8 @@ class ApplicationContext:
     storage: StorageService
     hardware: HardwareService
 
-    # Runtime, GUI, capability, model, and execution services
+    # Runtime, capability, model, execution,
+    # and hardware intelligence services
     runtime: Optional[RuntimeService] = None
     dashboard: Optional[DashboardService] = None
     monitor: Optional[RuntimeMonitorService] = None
@@ -60,3 +65,4 @@ class ApplicationContext:
     model_selection: Optional[RuntimeModelSelectionService] = None
     model_catalog: Optional[ModelCatalogService] = None
     execution: Optional[ExecutionService] = None
+    hardware_detection: Optional[HardwareDetectionService] = None
