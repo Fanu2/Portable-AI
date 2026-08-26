@@ -8,7 +8,6 @@ from portable_ai.core.application_factory import (
 def test_capability_foundation_freeze_boundary(
     tmp_path,
 ):
-
     context = ApplicationFactory(
         Path(tmp_path)
     ).create()
