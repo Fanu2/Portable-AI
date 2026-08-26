@@ -49,6 +49,10 @@ from portable_ai.services.runtime_model_selection_service import (
     RuntimeModelSelectionService,
 )
 
+from portable_ai.services.active_model_service import (
+    ActiveModelService,
+)
+
 from portable_ai.services.execution_service import (
     ExecutionService,
 )
@@ -79,6 +83,7 @@ class ApplicationContext:
     model_inventory: Optional[ModelInventoryService] = None
     model_compatibility: Optional[ModelCompatibilityService] = None
     model_selection: Optional[RuntimeModelSelectionService] = None
+    active_model: Optional[ActiveModelService] = None
 
     # Execution services
     execution: Optional[ExecutionService] = None

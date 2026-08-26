@@ -5,6 +5,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from portable_ai.gui.widgets.active_model_widget import (
+    ActiveModelWidget,
+)
+
 from portable_ai.gui.widgets.hardware_widget import (
     HardwareWidget,
 )
@@ -15,6 +19,10 @@ from portable_ai.gui.widgets.model_inventory_widget import (
 
 from portable_ai.gui.widgets.model_management_widget import (
     ModelManagementWidget,
+)
+
+from portable_ai.gui.widgets.model_selection_widget import (
+    ModelSelectionWidget,
 )
 
 from portable_ai.gui.widgets.runtime_control_widget import (
@@ -32,7 +40,19 @@ from portable_ai.gui.widgets.runtime_selector_widget import (
 
 class DashboardWidget(QWidget):
     """
-    Main dashboard display.
+    Main Portable-AI dashboard.
+
+    UI responsibility:
+        - Display system intelligence
+        - Display model intelligence
+        - Display runtime state
+
+    Service responsibility:
+        - Model selection
+        - Compatibility decisions
+        - Runtime operations
+
+    This widget remains a presentation layer only.
     """
 
     def __init__(
@@ -41,6 +61,8 @@ class DashboardWidget(QWidget):
         hardware_service=None,
         model_inventory_service=None,
         model_compatibility_service=None,
+        model_selection_service=None,
+        active_model_service=None,
         runtime_control_service=None,
     ) -> None:
 
@@ -48,20 +70,21 @@ class DashboardWidget(QWidget):
 
         self._service = dashboard_service
 
+        # Child widgets
         self._hardware = None
-
         self._models = None
-
         self._model_management = None
-
+        self._model_selection = None
+        self._active_model = None
         self._runtime_control = None
-
         self._details = None
 
+        # Dashboard title
         self._title = QLabel(
             "Portable-AI Dashboard"
         )
 
+        # Runtime selector
         self._selector = RuntimeSelectorWidget(
             self._service.runtime_names()
         )
@@ -88,6 +111,15 @@ class DashboardWidget(QWidget):
             self._title
         )
 
+        # -------------------------------------------------
+        # Hardware intelligence
+        #
+        # Shows:
+        #   CPU
+        #   RAM
+        #   Storage
+        # -------------------------------------------------
+
         if hardware_service is not None:
 
             self._hardware = HardwareWidget(
@@ -97,6 +129,22 @@ class DashboardWidget(QWidget):
             self._layout.addWidget(
                 self._hardware
             )
+
+        # -------------------------------------------------
+        # Model intelligence
+        #
+        # Inventory:
+        #   Available models
+        #
+        # Management:
+        #   Compatibility status
+        #
+        # Selection:
+        #   User-selected active model
+        #
+        # Active:
+        #   Current model state
+        # -------------------------------------------------
 
         if model_inventory_service is not None:
 
@@ -120,6 +168,38 @@ class DashboardWidget(QWidget):
                 self._model_management
             )
 
+        if (
+            model_inventory_service is not None
+            and active_model_service is not None
+        ):
+
+            self._model_selection = (
+                ModelSelectionWidget(
+                    model_inventory_service,
+                    active_model_service,
+                )
+            )
+
+            self._layout.addWidget(
+                self._model_selection
+            )
+
+        if active_model_service is not None:
+
+            self._active_model = (
+                ActiveModelWidget(
+                    active_model_service
+                )
+            )
+
+            self._layout.addWidget(
+                self._active_model
+            )
+
+        # -------------------------------------------------
+        # Runtime control
+        # -------------------------------------------------
+
         if runtime_control_service is not None:
 
             self._runtime_control = (
@@ -131,6 +211,10 @@ class DashboardWidget(QWidget):
             self._layout.addWidget(
                 self._runtime_control
             )
+
+        # -------------------------------------------------
+        # Runtime overview
+        # -------------------------------------------------
 
         self._layout.addWidget(
             self._selector
@@ -157,6 +241,10 @@ class DashboardWidget(QWidget):
     def refresh(
         self,
     ) -> None:
+
+        # -------------------------------------------------
+        # Runtime summary
+        # -------------------------------------------------
 
         summary = self._service.summary()
 
@@ -190,6 +278,10 @@ class DashboardWidget(QWidget):
                 )
             )
         )
+
+        # -------------------------------------------------
+        # Runtime detail panel
+        # -------------------------------------------------
 
         selected = (
             self._selector.selected_runtime()
@@ -230,6 +322,10 @@ class DashboardWidget(QWidget):
                 details
             )
 
+        # -------------------------------------------------
+        # Refresh child widgets
+        # -------------------------------------------------
+
         if self._hardware is not None:
 
             self._hardware.refresh()
@@ -241,6 +337,14 @@ class DashboardWidget(QWidget):
         if self._model_management is not None:
 
             self._model_management.refresh()
+
+        if self._model_selection is not None:
+
+            self._model_selection.refresh()
+
+        if self._active_model is not None:
+
+            self._active_model.refresh()
 
         if self._runtime_control is not None:
 

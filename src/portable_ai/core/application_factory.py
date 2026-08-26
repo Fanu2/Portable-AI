@@ -72,6 +72,10 @@ from portable_ai.services.model_inventory_service import (
     ModelInventoryService,
 )
 
+from portable_ai.services.model_compatibility_service import (
+    ModelCompatibilityService,
+)
+
 from portable_ai.services.runtime_service import (
     RuntimeService,
 )
@@ -92,6 +96,10 @@ from portable_ai.services.runtime_model_selection_service import (
     RuntimeModelSelectionService,
 )
 
+from portable_ai.services.active_model_service import (
+    ActiveModelService,
+)
+
 from portable_ai.services.execution_service import (
     ExecutionService,
 )
@@ -104,22 +112,21 @@ from portable_ai.services.hardware_detection_service import (
     HardwareDetectionService,
 )
 
-from portable_ai.services.dashboard_service import (
-    DashboardService,
-)
-
-from portable_ai.services.model_compatibility_service import (
-    ModelCompatibilityService,
-)
-
 from portable_ai.services.hardware_model_compatibility_service import (
     HardwareModelCompatibilityService,
+)
+
+from portable_ai.services.dashboard_service import (
+    DashboardService,
 )
 
 
 class ApplicationFactory:
     """
-    Creates Portable-AI application context.
+    Creates the Portable-AI application context.
+
+    Responsible for assembling application services.
+    Keeps service construction in one place.
     """
 
     def __init__(
@@ -133,6 +140,10 @@ class ApplicationFactory:
         self,
     ) -> ApplicationContext:
 
+        # -------------------------------------------------
+        # Configuration layer
+        # -------------------------------------------------
+
         config_manager = LocalConfigManager(
             self._root
             / "config"
@@ -143,6 +154,10 @@ class ApplicationFactory:
             config_manager,
             ConfigLayer(),
         )
+
+        # -------------------------------------------------
+        # Runtime provider layer
+        # -------------------------------------------------
 
         runtime_registry = RuntimeProviderRegistry()
 
@@ -175,6 +190,10 @@ class ApplicationFactory:
             runtime_health,
         )
 
+        # -------------------------------------------------
+        # Capability layer
+        # -------------------------------------------------
+
         capability_registry = CapabilityRegistry()
 
         capability_service = CapabilityService(
@@ -186,6 +205,10 @@ class ApplicationFactory:
             ollama_provider.capabilities(),
         )
 
+        # -------------------------------------------------
+        # Runtime catalog layer
+        # -------------------------------------------------
+
         runtime_catalog_registry = RuntimeRegistry()
 
         for definition in RUNTIME_DEFINITIONS:
@@ -193,6 +216,10 @@ class ApplicationFactory:
             runtime_catalog_registry.register(
                 definition
             )
+
+        # -------------------------------------------------
+        # Model intelligence layer
+        # -------------------------------------------------
 
         model_registry = ModelRegistry()
 
@@ -204,12 +231,15 @@ class ApplicationFactory:
 
         model_inventory = ModelInventoryService()
 
+        # Scan local model storage
         model_inventory.scan(
             [
                 self._root / "models",
             ]
         )
 
+        # Provide fallback catalog models
+        # when no local models exist
         if not model_inventory.all():
 
             model_inventory.register(
@@ -220,6 +250,7 @@ class ApplicationFactory:
                     format="GGUF",
                     available=True,
                     installed=False,
+                    minimum_ram_gb=4.0,
                 )
             )
 
@@ -231,13 +262,66 @@ class ApplicationFactory:
                     format="GGUF",
                     available=True,
                     installed=False,
+                    minimum_ram_gb=1.0,
                 )
             )
 
+        # Selects compatible runtime/model combinations
         model_selection = RuntimeModelSelectionService(
             model_registry,
             runtime_catalog_registry,
         )
+
+        # Checks whether models can run locally
+        hardware_compatibility = (
+            HardwareModelCompatibilityService()
+        )
+
+        model_compatibility = ModelCompatibilityService(
+            model_registry,
+            hardware_compatibility,
+        )
+
+        # -------------------------------------------------
+        # Active model state layer
+        #
+        # Maintains the user's selected model.
+        #
+        # Responsibilities:
+        #   - Store active model selection
+        #   - Restore previous selection
+        #   - Provide state boundary for execution
+        #
+        # Persistence:
+        #
+        # ActiveModelService
+        #        |
+        #        ▼
+        # ConfigurationService
+        #        |
+        #        ▼
+        # portable-ai.json
+        #
+        # No execution logic exists here.
+        # -------------------------------------------------
+
+        active_model = ActiveModelService(
+            configuration
+        )
+
+        active_model.restore()
+
+        # -------------------------------------------------
+        # Execution layer
+        #
+        # Responsible for:
+        #   - Runtime executor registration
+        #   - Model execution requests
+        #   - Result validation
+        #
+        # Active model selection will connect
+        # to this layer in P4.5.
+        # -------------------------------------------------
 
         executor_registry = ExecutorRegistry()
 
@@ -253,17 +337,18 @@ class ApplicationFactory:
             ExecutionResultValidator(),
         )
 
+        # -------------------------------------------------
+        # Hardware and dashboard layer
+        #
+        # Hardware:
+        #   Provides local machine information.
+        #
+        # Dashboard:
+        #   Aggregates runtime visibility.
+        # -------------------------------------------------
+
         hardware_detection = (
             HardwareDetectionService()
-        )
-
-        hardware_compatibility = (
-            HardwareModelCompatibilityService()
-        )
-
-        model_compatibility = ModelCompatibilityService(
-            model_registry,
-            hardware_compatibility,
         )
 
         dashboard = DashboardService(
@@ -272,18 +357,40 @@ class ApplicationFactory:
             runtime_health,
         )
 
+        # -------------------------------------------------
+        # Final application context
+        #
+        # Central dependency container.
+        #
+        # All future features should consume
+        # services through this boundary.
+        # -------------------------------------------------
+
         return ApplicationContext(
             configuration=configuration,
+
             storage=None,
+
             hardware=None,
+
+            # Runtime services
             runtime=runtime,
             dashboard=dashboard,
             monitor=runtime_monitor,
+
+            # Capability services
             capabilities=capability_service,
+
+            # Model services
             model_catalog=model_catalog,
             model_inventory=model_inventory,
             model_compatibility=model_compatibility,
             model_selection=model_selection,
+            active_model=active_model,
+
+            # Execution services
             execution=execution,
+
+            # Hardware services
             hardware_detection=hardware_detection,
         )
