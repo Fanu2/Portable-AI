@@ -29,6 +29,18 @@ from portable_ai.services.capability_service import (
     CapabilityService,
 )
 
+from portable_ai.services.runtime_model_selection_service import (
+    RuntimeModelSelectionService,
+)
+
+from portable_ai.services.model_catalog_service import (
+    ModelCatalogService,
+)
+
+from portable_ai.services.execution_service import (
+    ExecutionService,
+)
+
 
 @dataclass(frozen=True)
 class ApplicationContext:
@@ -40,8 +52,11 @@ class ApplicationContext:
     storage: StorageService
     hardware: HardwareService
 
-    # Runtime, GUI, and capability services
+    # Runtime, GUI, capability, model, and execution services
     runtime: Optional[RuntimeService] = None
     dashboard: Optional[DashboardService] = None
     monitor: Optional[RuntimeMonitorService] = None
     capabilities: Optional[CapabilityService] = None
+    model_selection: Optional[RuntimeModelSelectionService] = None
+    model_catalog: Optional[ModelCatalogService] = None
+    execution: Optional[ExecutionService] = None

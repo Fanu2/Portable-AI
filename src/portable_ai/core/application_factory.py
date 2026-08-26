@@ -32,12 +32,36 @@ from portable_ai.runtimes.ollama_provider import (
     OllamaRuntimeProvider,
 )
 
+from portable_ai.runtimes.ollama_executor import (
+    OllamaExecutor,
+)
+
 from portable_ai.models.capability_registry import (
     CapabilityRegistry,
 )
 
+from portable_ai.models.model_registry import (
+    ModelRegistry,
+)
+
+from portable_ai.models.runtime_registry import (
+    RuntimeRegistry,
+)
+
+from portable_ai.models.executor_registry import (
+    ExecutorRegistry,
+)
+
+from portable_ai.models.catalog.runtime_catalog import (
+    RUNTIME_DEFINITIONS,
+)
+
 from portable_ai.services.capability_service import (
     CapabilityService,
+)
+
+from portable_ai.services.model_catalog_service import (
+    ModelCatalogService,
 )
 
 from portable_ai.services.runtime_service import (
@@ -54,6 +78,18 @@ from portable_ai.services.runtime_health_service import (
 
 from portable_ai.services.runtime_monitor_service import (
     RuntimeMonitorService,
+)
+
+from portable_ai.services.runtime_model_selection_service import (
+    RuntimeModelSelectionService,
+)
+
+from portable_ai.services.execution_service import (
+    ExecutionService,
+)
+
+from portable_ai.services.execution_result_validator import (
+    ExecutionResultValidator,
 )
 
 from portable_ai.services.dashboard_service import (
@@ -125,6 +161,40 @@ class ApplicationFactory:
             ollama_provider.capabilities(),
         )
 
+        runtime_catalog_registry = RuntimeRegistry()
+
+        for definition in RUNTIME_DEFINITIONS:
+            runtime_catalog_registry.register(
+                definition
+            )
+
+        model_registry = ModelRegistry()
+
+        model_catalog = ModelCatalogService(
+            model_registry,
+        )
+
+        model_catalog.load_catalog()
+
+        model_selection = RuntimeModelSelectionService(
+            model_registry,
+            runtime_catalog_registry,
+        )
+
+        executor_registry = ExecutorRegistry()
+
+        executor_registry.register(
+            "ollama",
+            OllamaExecutor(
+                ollama_provider,
+            ),
+        )
+
+        execution = ExecutionService(
+            executor_registry,
+            ExecutionResultValidator(),
+        )
+
         dashboard = DashboardService(
             runtime,
             runtime_status,
@@ -139,4 +209,7 @@ class ApplicationFactory:
             dashboard=dashboard,
             monitor=runtime_monitor,
             capabilities=capability_service,
+            model_selection=model_selection,
+            model_catalog=model_catalog,
+            execution=execution,
         )

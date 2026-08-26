@@ -4,8 +4,13 @@ from portable_ai.core.application_factory import (
     ApplicationFactory,
 )
 
+from portable_ai.runtimes.ollama_executor import (
+    OllamaExecutor,
+)
+
 
 def test_application_factory_creates_context(tmp_path):
+
     factory = ApplicationFactory(
         Path(tmp_path)
     )
@@ -17,9 +22,13 @@ def test_application_factory_creates_context(tmp_path):
     assert context.dashboard is not None
     assert context.monitor is not None
     assert context.capabilities is not None
+    assert context.model_catalog is not None
+    assert context.model_selection is not None
+    assert context.execution is not None
 
 
 def test_application_factory_registers_ollama(tmp_path):
+
     factory = ApplicationFactory(
         Path(tmp_path)
     )
@@ -34,6 +43,7 @@ def test_application_factory_registers_ollama(tmp_path):
 
 
 def test_application_factory_exposes_monitor(tmp_path):
+
     factory = ApplicationFactory(
         Path(tmp_path)
     )
@@ -57,6 +67,7 @@ def test_application_factory_exposes_monitor(tmp_path):
 def test_application_factory_exposes_capabilities(
     tmp_path,
 ):
+
     factory = ApplicationFactory(
         Path(tmp_path)
     )
@@ -77,4 +88,79 @@ def test_application_factory_exposes_capabilities(
     assert (
         "ollama:text_generation"
         in names
+    )
+
+
+def test_application_factory_loads_model_catalog(
+    tmp_path,
+):
+
+    factory = ApplicationFactory(
+        Path(tmp_path)
+    )
+
+    context = factory.create()
+
+    model = (
+        context.model_selection.select(
+            "text_generation",
+            "Ollama",
+        )
+    )
+
+    assert model is not None
+
+    assert (
+        model.model.name
+        == "Qwen3.5-4B"
+    )
+
+    assert (
+        model.runtime
+        == "Ollama"
+    )
+
+    assert (
+        model.capability
+        == "text_generation"
+    )
+
+
+def test_application_factory_exposes_execution(
+    tmp_path,
+):
+
+    factory = ApplicationFactory(
+        Path(tmp_path)
+    )
+
+    context = factory.create()
+
+    assert (
+        context.execution
+        is not None
+    )
+
+
+def test_application_factory_registers_real_ollama_executor(
+    tmp_path,
+):
+
+    factory = ApplicationFactory(
+        Path(tmp_path)
+    )
+
+    context = factory.create()
+
+    executor = (
+        context.execution
+        ._registry
+        .get("ollama")
+    )
+
+    assert executor is not None
+
+    assert isinstance(
+        executor,
+        OllamaExecutor,
     )

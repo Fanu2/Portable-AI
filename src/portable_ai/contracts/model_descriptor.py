@@ -9,13 +9,21 @@ class ModelDescriptor:
     """
 
     name: str
+
     version: str
+
     format: str
+
     quantization: Optional[str]
+
     size_gb: float
+
     license: str
+
     capabilities: FrozenSet[str]
+
     minimum_ram_gb: Optional[float] = None
+
     checksum: Optional[str] = None
 
     # Runtime provenance metadata
