@@ -4,6 +4,10 @@ from portable_ai.contracts.application_context import (
     ApplicationContext,
 )
 
+from portable_ai.contracts.model_resource import (
+    ModelResource,
+)
+
 from portable_ai.config.local_config_manager import (
     LocalConfigManager,
 )
@@ -64,6 +68,10 @@ from portable_ai.services.model_catalog_service import (
     ModelCatalogService,
 )
 
+from portable_ai.services.model_inventory_service import (
+    ModelInventoryService,
+)
+
 from portable_ai.services.runtime_service import (
     RuntimeService,
 )
@@ -110,9 +118,12 @@ class ApplicationFactory:
         self,
         root: Path,
     ) -> None:
+
         self._root = root
 
-    def create(self) -> ApplicationContext:
+    def create(
+        self,
+    ) -> ApplicationContext:
 
         config_manager = LocalConfigManager(
             self._root / "config" / "portable-ai.json"
@@ -180,6 +191,26 @@ class ApplicationFactory:
 
         model_catalog.load_catalog()
 
+        model_inventory = ModelInventoryService()
+
+        model_inventory.register(
+            ModelResource(
+                model_name="Qwen3.5-4B",
+                path="catalog://Qwen3.5-4B",
+                size_gb=2.7,
+                format="GGUF",
+            )
+        )
+
+        model_inventory.register(
+            ModelResource(
+                model_name="nomic-embed-text",
+                path="catalog://nomic-embed-text",
+                size_gb=0.0,
+                format="GGUF",
+            )
+        )
+
         model_selection = RuntimeModelSelectionService(
             model_registry,
             runtime_catalog_registry,
@@ -215,8 +246,9 @@ class ApplicationFactory:
             dashboard=dashboard,
             monitor=runtime_monitor,
             capabilities=capability_service,
-            model_selection=model_selection,
             model_catalog=model_catalog,
+            model_inventory=model_inventory,
+            model_selection=model_selection,
             execution=execution,
             hardware_detection=hardware_detection,
         )

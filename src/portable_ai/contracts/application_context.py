@@ -41,6 +41,10 @@ from portable_ai.services.model_catalog_service import (
     ModelCatalogService,
 )
 
+from portable_ai.services.model_inventory_service import (
+    ModelInventoryService,
+)
+
 from portable_ai.services.execution_service import (
     ExecutionService,
 )
@@ -56,13 +60,14 @@ class ApplicationContext:
     storage: StorageService
     hardware: HardwareService
 
-    # Runtime, capability, model, execution,
-    # and hardware intelligence services
+    # Runtime, capability, model,
+    # execution, and hardware services
     runtime: Optional[RuntimeService] = None
     dashboard: Optional[DashboardService] = None
     monitor: Optional[RuntimeMonitorService] = None
     capabilities: Optional[CapabilityService] = None
-    model_selection: Optional[RuntimeModelSelectionService] = None
     model_catalog: Optional[ModelCatalogService] = None
+    model_inventory: Optional[ModelInventoryService] = None
+    model_selection: Optional[RuntimeModelSelectionService] = None
     execution: Optional[ExecutionService] = None
     hardware_detection: Optional[HardwareDetectionService] = None
