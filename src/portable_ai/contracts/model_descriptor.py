@@ -17,4 +17,6 @@ class ModelDescriptor:
     capabilities: FrozenSet[str]
     minimum_ram_gb: Optional[float] = None
     checksum: Optional[str] = None
-    
+
+    # Runtime provenance metadata
+    source_runtime: Optional[str] = None

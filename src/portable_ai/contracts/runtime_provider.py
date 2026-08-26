@@ -22,6 +22,13 @@ class RuntimeProvider(ABC):
         pass
 
     @abstractmethod
+    def metadata(self) -> dict[str, Any]:
+        """
+        Return runtime metadata.
+        """
+        pass
+
+    @abstractmethod
     def load_model(self, model_id: str) -> bool:
         """
         Load a model into the runtime.
