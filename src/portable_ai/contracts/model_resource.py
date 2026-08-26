@@ -10,7 +10,7 @@ class ModelResource:
 
     model_name: str
 
-    path: str
+    path: Optional[str]
 
     size_gb: float
 
@@ -19,3 +19,5 @@ class ModelResource:
     checksum: Optional[str] = None
 
     available: bool = True
+
+    installed: bool = False

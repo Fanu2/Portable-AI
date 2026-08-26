@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 
 class ModelInventoryWidget(QWidget):
     """
-    Displays available local models.
+    Displays available model inventory.
     """
 
     def __init__(
@@ -37,9 +37,20 @@ class ModelInventoryWidget(QWidget):
         self,
     ) -> None:
 
-        models = (
-            self._service.available()
-        )
+        if hasattr(
+            self._service,
+            "all",
+        ):
+
+            models = (
+                self._service.all()
+            )
+
+        else:
+
+            models = (
+                self._service.available()
+            )
 
         text = (
             "Models\n"
@@ -48,11 +59,42 @@ class ModelInventoryWidget(QWidget):
 
         for model in models:
 
+            installed = (
+                "Yes"
+                if getattr(
+                    model,
+                    "installed",
+                    False,
+                )
+                else "No"
+            )
+
             text += (
                 f"{model.model_name}\n"
                 f"Format: {model.format}\n"
                 f"Size: {model.size_gb} GB\n"
-                f"Status: Available\n\n"
+                f"Installed: {installed}\n"
+                "Status: Available\n"
+            )
+
+            path = getattr(
+                model,
+                "path",
+                None,
+            )
+
+            if path:
+
+                text += (
+                    f"Path: {path}\n"
+                )
+
+            text += "\n"
+
+        if not models:
+
+            text += (
+                "No models detected\n"
             )
 
         self._label.setText(

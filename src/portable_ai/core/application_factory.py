@@ -126,7 +126,9 @@ class ApplicationFactory:
     ) -> ApplicationContext:
 
         config_manager = LocalConfigManager(
-            self._root / "config" / "portable-ai.json"
+            self._root
+            / "config"
+            / "portable-ai.json"
         )
 
         configuration = ConfigurationService(
@@ -179,6 +181,7 @@ class ApplicationFactory:
         runtime_catalog_registry = RuntimeRegistry()
 
         for definition in RUNTIME_DEFINITIONS:
+
             runtime_catalog_registry.register(
                 definition
             )
@@ -193,23 +196,35 @@ class ApplicationFactory:
 
         model_inventory = ModelInventoryService()
 
-        model_inventory.register(
-            ModelResource(
-                model_name="Qwen3.5-4B",
-                path="catalog://Qwen3.5-4B",
-                size_gb=2.7,
-                format="GGUF",
-            )
+        model_inventory.scan(
+            [
+                self._root / "models",
+            ]
         )
 
-        model_inventory.register(
-            ModelResource(
-                model_name="nomic-embed-text",
-                path="catalog://nomic-embed-text",
-                size_gb=0.0,
-                format="GGUF",
+        if not model_inventory.all():
+
+            model_inventory.register(
+                ModelResource(
+                    model_name="Qwen3.5-4B",
+                    path="catalog://Qwen3.5-4B",
+                    size_gb=2.7,
+                    format="GGUF",
+                    available=True,
+                    installed=False,
+                )
             )
-        )
+
+            model_inventory.register(
+                ModelResource(
+                    model_name="nomic-embed-text",
+                    path="catalog://nomic-embed-text",
+                    size_gb=0.0,
+                    format="GGUF",
+                    available=True,
+                    installed=False,
+                )
+            )
 
         model_selection = RuntimeModelSelectionService(
             model_registry,

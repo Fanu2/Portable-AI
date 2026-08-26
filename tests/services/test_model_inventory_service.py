@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from portable_ai.contracts.model_resource import (
     ModelResource,
 )
@@ -50,3 +52,43 @@ def test_model_inventory_lists_available_models():
     models = service.available()
 
     assert len(models) == 1
+
+
+def test_model_inventory_scans_installed_models(
+    tmp_path: Path,
+):
+
+    model_file = (
+        tmp_path / "qwen-local.gguf"
+    )
+
+    model_file.write_bytes(
+        b"model-data"
+    )
+
+    service = ModelInventoryService()
+
+    service.scan(
+        [
+            tmp_path,
+        ]
+    )
+
+    models = service.installed()
+
+    assert len(models) == 1
+
+    assert (
+        models[0].model_name
+        == "qwen-local"
+    )
+
+    assert (
+        models[0].format
+        == "GGUF"
+    )
+
+    assert (
+        models[0].installed
+        is True
+    )
