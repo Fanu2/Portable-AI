@@ -26,22 +26,63 @@ class DashboardService:
         runtime_status_service: RuntimeStatusService,
         runtime_health_service: RuntimeHealthService,
     ) -> None:
-        self._runtime_service = runtime_service
-        self._runtime_status_service = runtime_status_service
-        self._runtime_health_service = runtime_health_service
 
-    def summary(self) -> dict:
+        self._runtime_service = runtime_service
+
+        self._runtime_status_service = (
+            runtime_status_service
+        )
+
+        self._runtime_health_service = (
+            runtime_health_service
+        )
+
+    def summary(
+        self,
+    ) -> dict:
+
         return {
-            "runtimes": self._runtime_status_service.status(),
+            "runtimes": (
+                self._runtime_status_service.status()
+            ),
             "available_runtime_count": len(
                 self._runtime_service.available_runtimes()
             ),
         }
 
+    def runtime_names(
+        self,
+    ) -> list[str]:
+
+        return (
+            self._runtime_service
+            ._registry
+            .all_named()
+        )
+
+    def runtime_metadata(
+        self,
+        runtime_name: str,
+    ) -> dict:
+
+        provider = (
+            self._runtime_service
+            ._registry
+            .get(
+                runtime_name
+            )
+        )
+
+        return provider.metadata()
+
     def runtime_health_snapshot(
         self,
         runtime_name: str,
     ) -> RuntimeHealthSnapshot:
-        return self._runtime_health_service.snapshot(
-            runtime_name
+
+        return (
+            self._runtime_health_service
+            .snapshot(
+                runtime_name
+            )
         )

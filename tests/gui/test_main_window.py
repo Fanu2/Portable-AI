@@ -10,16 +10,23 @@ from portable_ai.gui.main_window import (
 
 
 class FakeDashboardService:
+    """
+    Fake dashboard service for GUI testing.
+    """
 
-    def summary(self):
+    def summary(
+        self,
+    ):
         return {
             "runtimes": {
-                "ollama": False
+                "ollama": False,
             },
             "available_runtime_count": 0,
         }
 
-    def runtime_names(self):
+    def runtime_names(
+        self,
+    ):
         return [
             "ollama",
         ]
@@ -28,6 +35,7 @@ class FakeDashboardService:
         self,
         runtime_name,
     ):
+
         return {
             "endpoint": "127.0.0.1:11434",
             "capabilities": [
@@ -40,8 +48,11 @@ class FakeDashboardService:
         self,
         runtime_name,
     ):
+
         class Snapshot:
+
             health = RuntimeHealth.OFFLINE
+
             checked_at = datetime(
                 2026,
                 8,
@@ -54,7 +65,10 @@ class FakeDashboardService:
         return Snapshot()
 
 
-def test_main_window_title(qtbot):
+def test_main_window_title(
+    qtbot,
+):
+
     window = MainWindow()
 
     qtbot.addWidget(
@@ -67,13 +81,21 @@ def test_main_window_title(qtbot):
     )
 
 
-def test_main_window_uses_dashboard_widget(qtbot):
+def test_main_window_uses_dashboard_widget(
+    qtbot,
+):
+
+    dashboard = FakeDashboardService()
+
     window = MainWindow(
-        FakeDashboardService()
+        dashboard,
     )
 
     qtbot.addWidget(
         window
     )
 
-    assert window.centralWidget() is not None
+    assert (
+        window.centralWidget()
+        is not None
+    )

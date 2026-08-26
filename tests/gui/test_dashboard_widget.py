@@ -1,5 +1,9 @@
 from datetime import datetime
 
+from portable_ai.contracts.hardware_info import (
+    HardwareInfo,
+)
+
 from portable_ai.models.runtime_health import (
     RuntimeHealth,
 )
@@ -10,8 +14,14 @@ from portable_ai.gui.widgets.dashboard_widget import (
 
 
 class FakeDashboardService:
+    """
+    Fake dashboard service for GUI tests.
+    """
 
-    def summary(self):
+    def summary(
+        self,
+    ):
+
         return {
             "runtimes": {
                 "ollama": False,
@@ -20,7 +30,10 @@ class FakeDashboardService:
             "available_runtime_count": 0,
         }
 
-    def runtime_names(self):
+    def runtime_names(
+        self,
+    ):
+
         return [
             "ollama",
             "test-runtime",
@@ -30,6 +43,7 @@ class FakeDashboardService:
         self,
         runtime_name,
     ):
+
         return {
             "endpoint": "127.0.0.1:11434",
             "capabilities": [
@@ -42,8 +56,11 @@ class FakeDashboardService:
         self,
         runtime_name,
     ):
+
         class Snapshot:
+
             health = RuntimeHealth.OFFLINE
+
             checked_at = datetime(
                 2026,
                 8,
@@ -56,7 +73,26 @@ class FakeDashboardService:
         return Snapshot()
 
 
-def test_dashboard_widget_displays_runtime_status(qtbot):
+class FakeHardwareService:
+    """
+    Fake hardware service for GUI tests.
+    """
+
+    def detect(
+        self,
+    ):
+
+        return HardwareInfo(
+            cpu_cores=8,
+            ram_gb=16.0,
+            storage_gb=1000.0,
+        )
+
+
+def test_dashboard_widget_displays_runtime_status(
+    qtbot,
+):
+
     widget = DashboardWidget(
         FakeDashboardService()
     )
@@ -65,18 +101,17 @@ def test_dashboard_widget_displays_runtime_status(qtbot):
         widget
     )
 
-    assert (
-        "OLLAMA"
-        in widget._runtime_label.text()
-    )
+    text = widget._runtime_label.text()
 
-    assert (
-        "Offline"
-        in widget._runtime_label.text()
-    )
+    assert "OLLAMA" in text
+
+    assert "Offline" in text
 
 
-def test_dashboard_widget_has_refresh_button(qtbot):
+def test_dashboard_widget_has_refresh_button(
+    qtbot,
+):
+
     widget = DashboardWidget(
         FakeDashboardService()
     )
@@ -91,7 +126,10 @@ def test_dashboard_widget_has_refresh_button(qtbot):
     )
 
 
-def test_dashboard_widget_shows_runtime_details(qtbot):
+def test_dashboard_widget_shows_runtime_details(
+    qtbot,
+):
+
     widget = DashboardWidget(
         FakeDashboardService()
     )
@@ -111,7 +149,10 @@ def test_dashboard_widget_shows_runtime_details(qtbot):
     assert "Checked:" in text
 
 
-def test_dashboard_widget_has_runtime_selector(qtbot):
+def test_dashboard_widget_has_runtime_selector(
+    qtbot,
+):
+
     widget = DashboardWidget(
         FakeDashboardService()
     )
@@ -126,7 +167,10 @@ def test_dashboard_widget_has_runtime_selector(qtbot):
     )
 
 
-def test_dashboard_widget_supports_multiple_runtimes(qtbot):
+def test_dashboard_widget_supports_multiple_runtimes(
+    qtbot,
+):
+
     widget = DashboardWidget(
         FakeDashboardService()
     )
@@ -141,7 +185,10 @@ def test_dashboard_widget_supports_multiple_runtimes(qtbot):
     )
 
 
-def test_dashboard_widget_displays_health_timestamp(qtbot):
+def test_dashboard_widget_displays_health_timestamp(
+    qtbot,
+):
+
     widget = DashboardWidget(
         FakeDashboardService()
     )
@@ -152,12 +199,39 @@ def test_dashboard_widget_displays_health_timestamp(qtbot):
 
     text = widget._details._label.text()
 
+    assert "Checked:" in text
+
+    assert "2026" in text
+
+
+def test_dashboard_widget_shows_hardware(
+    qtbot,
+):
+
+    widget = DashboardWidget(
+        FakeDashboardService(),
+        FakeHardwareService(),
+    )
+
+    qtbot.addWidget(
+        widget
+    )
+
     assert (
-        "Checked:"
+        widget._hardware
+        is not None
+    )
+
+    text = (
+        widget._hardware._label.text()
+    )
+
+    assert (
+        "CPU Cores: 8"
         in text
     )
 
     assert (
-        "2026"
+        "RAM: 16.0 GB"
         in text
     )

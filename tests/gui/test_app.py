@@ -1,5 +1,8 @@
-from portable_ai.gui.app import run
+from portable_ai.gui import app
 
 
-def test_app_entry_exists():
-    assert callable(run)
+def test_gui_run_exists():
+
+    assert callable(
+        app.run
+    )
