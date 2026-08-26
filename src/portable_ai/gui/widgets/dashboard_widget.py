@@ -13,6 +13,10 @@ from portable_ai.gui.widgets.model_inventory_widget import (
     ModelInventoryWidget,
 )
 
+from portable_ai.gui.widgets.runtime_control_widget import (
+    RuntimeControlWidget,
+)
+
 from portable_ai.gui.widgets.runtime_details_widget import (
     RuntimeDetailsWidget,
 )
@@ -32,6 +36,7 @@ class DashboardWidget(QWidget):
         dashboard_service,
         hardware_service=None,
         model_inventory_service=None,
+        runtime_control_service=None,
     ) -> None:
 
         super().__init__()
@@ -41,6 +46,8 @@ class DashboardWidget(QWidget):
         self._hardware = None
 
         self._models = None
+
+        self._runtime_control = None
 
         self._details = None
 
@@ -92,6 +99,18 @@ class DashboardWidget(QWidget):
 
             self._layout.addWidget(
                 self._models
+            )
+
+        if runtime_control_service is not None:
+
+            self._runtime_control = (
+                RuntimeControlWidget(
+                    runtime_control_service
+                )
+            )
+
+            self._layout.addWidget(
+                self._runtime_control
             )
 
         self._layout.addWidget(
@@ -199,3 +218,7 @@ class DashboardWidget(QWidget):
         if self._models is not None:
 
             self._models.refresh()
+
+        if self._runtime_control is not None:
+
+            self._runtime_control.refresh()
