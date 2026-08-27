@@ -23,38 +23,29 @@ class UIFactory:
         - assemble UI-facing services
         - keep GUI dependencies isolated
 
-    Architecture:
+    Does not:
+        - create runtimes
+        - create providers
+        - manage execution
+        - own assistant lifecycle
 
-        ApplicationContext
-              |
-              X
+    Supports:
+        - default assistant creation
+        - injected assistant services
 
-        UIContext
-              |
-              ├── ExecutionUIService
-              |
-              └── AssistantUIService
-                        |
-                        ▼
-                AssistantService
-                        |
-              ┌─────────┴─────────┐
-              ▼                   ▼
-    ConversationService   AssistantContextService
-
-    Core application services remain untouched.
+    This preserves existing GUI bootstrap
+    while allowing future application-level
+    dependency injection.
     """
 
     def create(
         self,
         active_execution,
+        assistant_service=None,
     ) -> UIContext:
 
         #
         # Execution UI boundary.
-        #
-        # Provides controlled access
-        # to existing execution flow.
         #
         execution = (
             ExecutionUIService(
@@ -63,23 +54,20 @@ class UIFactory:
         )
 
         #
-        # Assistant composition boundary.
+        # Assistant service boundary.
         #
-        # AssistantService owns:
-        #   - conversation state
-        #   - assistant context
+        # Backward compatible:
+        # create default assistant when
+        # no service is injected.
         #
-        # It does not execute models.
-        #
-        assistant_service = (
-            AssistantService()
-        )
+        if assistant_service is None:
+
+            assistant_service = (
+                AssistantService()
+            )
 
         #
         # GUI-facing assistant boundary.
-        #
-        # Conversation widgets consume
-        # this service only.
         #
         assistant = (
             AssistantUIService(
