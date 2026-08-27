@@ -1,3 +1,4 @@
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
@@ -18,6 +19,8 @@ class ConversationWidget(QWidget):
         - accept user input
         - forward messages to UI service
         - render assistant responses
+        - show generation state
+        - handle UI errors
         - clear assistant session display
 
     Does not:
@@ -36,15 +39,11 @@ class ConversationWidget(QWidget):
 
         super().__init__()
 
-        #
-        # GUI-facing assistant boundary.
-        #
-        # UI communicates only through
-        # AssistantUIService.
-        #
         self._assistant = (
             assistant_ui_service
         )
+
+        self._generating = False
 
         #
         # Conversation display.
@@ -56,9 +55,13 @@ class ConversationWidget(QWidget):
         )
 
         #
-        # User input.
+        # Input.
         #
         self._input = QLineEdit()
+
+        self._input.setPlaceholderText(
+            "Enter message..."
+        )
 
         #
         # Actions.
@@ -71,9 +74,6 @@ class ConversationWidget(QWidget):
             "Clear"
         )
 
-        #
-        # Layout.
-        #
         layout = QVBoxLayout()
 
         layout.addWidget(
@@ -96,10 +96,6 @@ class ConversationWidget(QWidget):
             layout
         )
 
-        #
-        # Keep assistant area visible
-        # inside ApplicationShellWidget.
-        #
         self.setMinimumHeight(
             180
         )
@@ -111,8 +107,128 @@ class ConversationWidget(QWidget):
             self._send_message
         )
 
+        self._input.returnPressed.connect(
+            self._send_message
+        )
+
         self._clear_button.clicked.connect(
             self.clear_session
+        )
+
+        #
+        # Future multiline support.
+        #
+        shortcut = QShortcut(
+            QKeySequence(
+                "Ctrl+Return"
+            ),
+            self,
+        )
+
+        shortcut.activated.connect(
+            self._send_message
+        )
+
+    def _scroll_to_bottom(
+        self,
+    ) -> None:
+        """
+        Keep latest message visible.
+        """
+
+        scrollbar = (
+            self._display
+            .verticalScrollBar()
+        )
+
+        scrollbar.setValue(
+            scrollbar.maximum()
+        )
+
+    def _format_message(
+        self,
+        sender: str,
+        content: str,
+    ) -> str:
+        """
+        Preserve text contract.
+
+        Existing tests depend on:
+
+            User: message
+            Assistant: response
+        """
+
+        return (
+            f"{sender}: {content}"
+        )
+
+    def _append_message(
+        self,
+        sender: str,
+        content: str,
+    ) -> None:
+        """
+        Append message to display.
+        """
+
+        self._display.append(
+            self._format_message(
+                sender,
+                content,
+            )
+        )
+
+        self._scroll_to_bottom()
+
+    def append_assistant_chunk(
+        self,
+        chunk: str,
+    ) -> None:
+        """
+        Future streaming hook.
+
+        Reserved for incremental
+        assistant responses.
+
+        Currently UI only.
+        """
+
+        self._display.insertPlainText(
+            chunk
+        )
+
+        self._scroll_to_bottom()
+
+    def _show_status(
+        self,
+        text: str,
+    ) -> None:
+        """
+        Display temporary assistant state.
+        """
+
+        self._append_message(
+            "Assistant",
+            text,
+        )
+
+    def _set_generating(
+        self,
+        active: bool,
+    ) -> None:
+        """
+        Lock UI during generation.
+        """
+
+        self._generating = active
+
+        self._send_button.setEnabled(
+            not active
+        )
+
+        self._input.setEnabled(
+            not active
         )
 
     def load_history(
@@ -121,38 +237,29 @@ class ConversationWidget(QWidget):
     ) -> None:
         """
         Render conversation history.
-
-        Expected message fields:
-            - sender
-            - content
         """
 
         self._display.clear()
 
         for message in messages:
 
-            self._display.append(
-                f"{message.sender}: {message.content}"
+            sender = (
+                message.sender
+                .capitalize()
             )
+
+            self._append_message(
+                sender,
+                message.content,
+            )
+
+        self._scroll_to_bottom()
 
     def refresh_history(
         self,
     ) -> None:
         """
         Refresh display from assistant state.
-
-        Flow:
-
-            AssistantService
-                    |
-                    ▼
-            AssistantUIService
-                    |
-                    ▼
-            ConversationWidget
-                    |
-                    ▼
-              QTextEdit
         """
 
         history = (
@@ -169,14 +276,6 @@ class ConversationWidget(QWidget):
     ) -> None:
         """
         Clear assistant session.
-
-        Delegates lifecycle control
-        to AssistantUIService.
-
-        UI does not manage:
-            - conversation state
-            - assistant context
-            - persistence
         """
 
         self._assistant.clear()
@@ -189,61 +288,63 @@ class ConversationWidget(QWidget):
         self,
     ) -> None:
         """
-        Send user message.
-
-        Flow:
-
-            User input
-                |
-                ▼
-            AssistantUIService
-                |
-                ▼
-            AssistantService
-                |
-                ▼
-            ResponseGenerationService
-                |
-                ▼
-            Response
+        Send user message and generate response.
         """
+
+        if self._generating:
+
+            return
 
         message = (
             self._input.text()
+            .strip()
         )
 
         if not message:
 
             return
 
-        #
-        # Store user message.
-        #
-        self._assistant.send_message(
-            message
-        )
+        self._input.clear()
 
-        #
-        # Generate response.
-        #
-        response = (
-            self._assistant
-            .generate_response()
-        )
+        try:
 
-        #
-        # Refresh conversation
-        # from service state.
-        #
-        self.refresh_history()
-
-        #
-        # Display generated response.
-        #
-        if response is not None:
-
-            self._display.append(
-                f"Assistant: {response}"
+            self._assistant.send_message(
+                message
             )
 
-        self._input.clear()
+            self.refresh_history()
+
+            self._set_generating(
+                True
+            )
+
+            self._show_status(
+                "Thinking..."
+            )
+
+            response = (
+                self._assistant
+                .generate_response()
+            )
+
+            self.refresh_history()
+
+            if response is not None:
+
+                self._append_message(
+                    "Assistant",
+                    response,
+                )
+
+        except Exception as error:
+
+            self._append_message(
+                "Assistant",
+                f"Error: {error}",
+            )
+
+        finally:
+
+            self._set_generating(
+                False
+            )

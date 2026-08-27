@@ -23,14 +23,15 @@ class ApplicationShellWidget(QWidget):
 
     Combines:
 
-        - Core dashboard
+        - Dashboard
         - Execution panel
         - Assistant panel
         - Workspace status
 
     Responsibilities:
-        - compose GUI widgets only
+        - compose GUI widgets
         - connect UI services to widgets
+        - control visual layout only
 
     Does not:
         - manage execution logic
@@ -60,15 +61,14 @@ class ApplicationShellWidget(QWidget):
         layout = QVBoxLayout()
 
         #
-        # Dashboard.
+        # Dashboard area.
         #
-        # Dashboard contains multiple sections:
+        # Dashboard can contain:
         #   - hardware
         #   - models
-        #   - runtime
+        #   - runtime information
         #
-        # Keep it scrollable so shell
-        # components remain visible.
+        # Keep it scrollable.
         #
         dashboard_scroll = QScrollArea()
 
@@ -82,11 +82,13 @@ class ApplicationShellWidget(QWidget):
 
         layout.addWidget(
             dashboard_scroll,
-            3,
+            2,
         )
 
         #
-        # Optional execution UI.
+        # Execution UI.
+        #
+        # Controlled execution boundary.
         #
         if execution_service is not None:
 
@@ -102,7 +104,10 @@ class ApplicationShellWidget(QWidget):
             )
 
         #
-        # Optional assistant UI.
+        # Assistant UI.
+        #
+        # Conversation and assistant
+        # interaction boundary.
         #
         if assistant_service is not None:
 
@@ -114,13 +119,13 @@ class ApplicationShellWidget(QWidget):
 
             layout.addWidget(
                 self._assistant_panel,
-                1,
+                2,
             )
 
             #
-            # Workspace awareness display.
+            # Workspace awareness.
             #
-            # Reads workspace state only.
+            # Displays workspace state only.
             #
             self._workspace_status = (
                 WorkspaceStatusWidget(
