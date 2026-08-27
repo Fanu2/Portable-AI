@@ -10,6 +10,10 @@ from portable_ai.assistant.prompt_context_service import (
     PromptContextService,
 )
 
+from portable_ai.assistant.retrieval_context_service import (
+    RetrievalContextService,
+)
+
 from portable_ai.assistant.response_generation_service import (
     ResponseGenerationService,
 )
@@ -34,6 +38,7 @@ class AssistantService:
         - expose workspace context boundary
         - prepare prompt context
         - request response generation
+        - expose retrieval context bridge
 
     Does not:
         - manage models
@@ -42,13 +47,10 @@ class AssistantService:
         - call tools
         - run autonomous tasks
         - manage workspace data
-
-    This service composes assistant
-    foundation components only.
+        - perform retrieval directly
 
     Session state remains in-memory.
-    Persistence is intentionally
-    outside this boundary.
+    Persistence is outside this boundary.
     """
 
     def __init__(
@@ -57,6 +59,7 @@ class AssistantService:
         context_service: AssistantContextService | None = None,
         prompt_context_service: PromptContextService | None = None,
         response_generation_service: ResponseGenerationService | None = None,
+        retrieval_context_service: RetrievalContextService | None = None,
     ) -> None:
 
         self._conversation = (
@@ -79,14 +82,10 @@ class AssistantService:
             or ResponseGenerationService()
         )
 
-        #
-        # In-memory assistant session.
-        #
-        # Owns:
-        #   - conversation state
-        #   - assistant context
-        #   - workspace boundary
-        #
+        self._retrieval_context = (
+            retrieval_context_service
+        )
+
         self._session = (
             AssistantSession()
         )
@@ -117,19 +116,30 @@ class AssistantService:
             self._conversation.history()
         )
 
+    def retrieve_context(
+        self,
+        query: str,
+    ) -> None:
+        """
+        Update prompt context with retrieval results.
+
+        Retrieval remains outside assistant core.
+        """
+
+        if self._retrieval_context is None:
+            return
+
+        self._retrieval_context.update(
+            query
+        )
+
     def generate_response(
         self,
     ):
         """
         Generate assistant response.
 
-        Uses only the response
-        generation boundary.
-
-        Does not directly access:
-            - models
-            - runtimes
-            - executors
+        Uses only response generation boundary.
         """
 
         return (
@@ -167,9 +177,6 @@ class AssistantService:
     ):
         """
         Return prepared prompt context.
-
-        Future assistant engines consume
-        this boundary.
         """
 
         return (
@@ -182,16 +189,6 @@ class AssistantService:
     ) -> AssistantSession:
         """
         Return current assistant session.
-
-        Synchronizes:
-            - conversation
-            - assistant context
-            - workspace context
-
-        Workspace remains a boundary only.
-
-        Persistence is intentionally
-        not implemented here.
         """
 
         self._session.conversation = (
@@ -202,10 +199,6 @@ class AssistantService:
             self._context.get_context()
         )
 
-        #
-        # Make workspace context available
-        # to future prompt construction.
-        #
         self._prompt_context.set_workspace_context(
             self._session.workspace
         )
@@ -217,14 +210,6 @@ class AssistantService:
     ) -> WorkspaceContext:
         """
         Return current workspace context.
-
-        Assistant can see workspace state.
-
-        Assistant does not manage:
-            - documents
-            - indexing
-            - retrieval
-            - storage
         """
 
         return (
@@ -236,11 +221,6 @@ class AssistantService:
     ) -> None:
         """
         Reset assistant state.
-
-        Clears:
-            - conversation history
-            - prompt conversation context
-            - session state
         """
 
         self._conversation.clear()
@@ -253,9 +233,6 @@ class AssistantService:
             AssistantSession()
         )
 
-        #
-        # Reset workspace-aware prompt state.
-        #
         self._prompt_context.set_workspace_context(
             self._session.workspace
         )
