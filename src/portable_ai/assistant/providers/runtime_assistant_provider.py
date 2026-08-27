@@ -1,7 +1,9 @@
-from typing import Any
-
 from portable_ai.assistant.providers.assistant_provider import (
     AssistantProvider,
+)
+
+from portable_ai.contracts.runtime_provider import (
+    RuntimeProvider,
 )
 
 
@@ -9,84 +11,42 @@ class RuntimeAssistantProvider(
     AssistantProvider
 ):
     """
-    Adapter between assistant generation
-    and runtime provider.
+    Assistant provider adapter for runtime providers.
 
     Responsibilities:
-        - translate assistant context
-          into runtime prompt
-        - delegate generation
+        - adapt assistant context
+        - delegate generation to runtime
 
     Does not:
-        - manage runtime lifecycle
+        - manage runtimes
         - select models
-        - manage UI
-        - manage conversations
-
-    Keeps assistant layer isolated
-    from runtime implementations.
+        - manage provider lifecycle
     """
 
     def __init__(
         self,
-        runtime_provider,
+        runtime_provider: RuntimeProvider,
     ) -> None:
 
-        self._runtime = (
+        self._runtime_provider = (
             runtime_provider
         )
 
     def generate(
         self,
-        context: Any,
-    ) -> str:
-        """
-        Generate assistant response.
-
-        Context comes from:
-            PromptContextService
-
-        Runtime receives:
-            prepared prompt string
-        """
-
-        prompt = (
-            self._build_prompt(
-                context
-            )
-        )
-
-        return (
-            self._runtime
-            .generate(
-                prompt
-            )
-        )
-
-    def _build_prompt(
-        self,
         context,
     ) -> str:
         """
-        Convert assistant context
-        into runtime prompt.
-
-        Initial implementation:
-            simple text boundary.
-
-        Future:
-            structured prompts,
-            system instructions,
-            workspace context.
+        Generate assistant response.
         """
 
-        if isinstance(
-            context,
-            str,
-        ):
-
-            return context
-
-        return str(
+        prompt = str(
             context
+        )
+
+        return (
+            self._runtime_provider
+            .generate(
+                prompt
+            )
         )

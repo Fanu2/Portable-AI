@@ -2,44 +2,76 @@ from portable_ai.assistant.providers.runtime_assistant_provider import (
     RuntimeAssistantProvider,
 )
 
+from portable_ai.contracts.runtime_provider import (
+    RuntimeProvider,
+)
 
-class FakeRuntimeProvider:
+
+class FakeRuntimeProvider(
+    RuntimeProvider
+):
     """
-    Fake runtime provider for testing.
+    Fake runtime provider.
+
+    Confirms adapter delegates
+    generation correctly.
     """
 
-    def __init__(
+    def discover(self):
+        return {}
+
+    def capabilities(self):
+        return set()
+
+    def metadata(self):
+        return {}
+
+    def load_model(
         self,
-    ) -> None:
+        model_id,
+    ):
+        return True
 
-        self.received_prompt = None
+    def unload_model(
+        self,
+        model_id,
+    ):
+        return True
 
     def generate(
         self,
         prompt,
+        **kwargs,
     ):
 
-        self.received_prompt = prompt
+        assert (
+            prompt
+            == "hello"
+        )
 
-        return "runtime response"
+        return "response"
+
+    def embed(
+        self,
+        text,
+    ):
+        return []
+
+    def health(self):
+        return True
 
 
-def test_runtime_assistant_provider_generates_response():
-
-    runtime = FakeRuntimeProvider()
+def test_runtime_assistant_provider_delegates_generation():
 
     provider = RuntimeAssistantProvider(
-        runtime
+        FakeRuntimeProvider()
     )
 
-    response = provider.generate(
+    result = provider.generate(
         "hello"
     )
 
-    assert response == (
-        "runtime response"
-    )
-
-    assert runtime.received_prompt == (
-        "hello"
+    assert (
+        result
+        == "response"
     )
