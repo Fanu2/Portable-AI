@@ -173,8 +173,14 @@ class ApplicationFactory:
 
         runtime_registry = RuntimeProviderRegistry()
 
+        ollama_model = configuration.get(
+            "assistant.model",
+            "qwen3:4b",
+        )
+
         ollama_client = OllamaClient(
-            HttpTransport()
+            HttpTransport(),
+            model=ollama_model,
         )
 
         ollama_provider = OllamaRuntimeProvider(

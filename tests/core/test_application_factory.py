@@ -164,3 +164,26 @@ def test_application_factory_registers_real_ollama_executor(
         executor,
         OllamaExecutor,
     )
+
+def test_application_factory_uses_configured_assistant_model(
+    tmp_path,
+):
+
+    factory = ApplicationFactory(
+        Path(tmp_path)
+    )
+
+    context = factory.create()
+
+    ollama = (
+        context.runtime
+        ._registry
+        .get("ollama")
+    )
+
+    assert ollama is not None
+
+    assert (
+        ollama._client._model
+        == "qwen3:4b"
+    )
