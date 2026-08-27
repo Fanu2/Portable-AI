@@ -57,6 +57,17 @@ from portable_ai.services.execution_service import (
     ExecutionService,
 )
 
+from portable_ai.services.execution_request_service import (
+    ExecutionRequestService,
+)
+
+from portable_ai.services.execution_adapter_service import (
+    ExecutionAdapterService,
+)
+
+from portable_ai.services.active_execution_service import (
+    ActiveExecutionService,
+)
 
 @dataclass(frozen=True)
 class ApplicationContext:
@@ -87,6 +98,12 @@ class ApplicationContext:
 
     # Execution services
     execution: Optional[ExecutionService] = None
+
+    execution_request: Optional[ExecutionRequestService] = None
+
+    execution_adapter: Optional[ExecutionAdapterService] = None
+
+    active_execution: Optional[ActiveExecutionService] = None
 
     # Hardware services
     hardware_detection: Optional[HardwareDetectionService] = None

@@ -104,6 +104,14 @@ from portable_ai.services.execution_service import (
     ExecutionService,
 )
 
+from portable_ai.services.execution_request_service import (
+    ExecutionRequestService,
+)
+
+from portable_ai.services.execution_adapter_service import (
+    ExecutionAdapterService,
+)
+
 from portable_ai.services.execution_result_validator import (
     ExecutionResultValidator,
 )
@@ -118,6 +126,10 @@ from portable_ai.services.hardware_model_compatibility_service import (
 
 from portable_ai.services.dashboard_service import (
     DashboardService,
+)
+
+from portable_ai.services.active_execution_service import (
+    ActiveExecutionService,
 )
 
 
@@ -304,12 +316,30 @@ class ApplicationFactory:
         #
         # No execution logic exists here.
         # -------------------------------------------------
+        # -------------------------------------------------
+        # Active model and execution request layer
+        #
+        # ActiveModelService:
+        #   Stores the selected model state.
+        #
+        # ExecutionRequestService:
+        #   Converts active model state into
+        #   execution requests.
+        #
+        # No model execution happens here.
+        # -------------------------------------------------
 
         active_model = ActiveModelService(
             configuration
         )
 
         active_model.restore()
+
+        execution_request = (
+            ExecutionRequestService(
+                active_model
+            )
+        )
 
         # -------------------------------------------------
         # Execution layer
@@ -336,7 +366,49 @@ class ApplicationFactory:
             executor_registry,
             ExecutionResultValidator(),
         )
+        
+                # -------------------------------------------------
+        # Execution adapter layer
+        #
+        # Bridges execution requests
+        # into the execution engine.
+        #
+        # No model execution logic here.
+        # -------------------------------------------------
 
+        execution_adapter = (
+            ExecutionAdapterService(
+                execution
+            )
+        )
+        
+                # -------------------------------------------------
+        # Active execution layer
+        #
+        # Uses the active model state
+        # to execute prepared requests.
+        # -------------------------------------------------
+
+        active_execution = (
+            ActiveExecutionService(
+                execution_request,
+                execution_adapter,
+            )
+        )
+
+        # -------------------------------------------------
+        # Active execution layer
+        #
+        # Uses the currently selected model
+        # to create and execute requests.
+        # -------------------------------------------------
+
+        active_execution = (
+            ActiveExecutionService(
+                execution_request,
+                execution_adapter,
+            )
+        )
         # -------------------------------------------------
         # Hardware and dashboard layer
         #
@@ -389,7 +461,24 @@ class ApplicationFactory:
             active_model=active_model,
 
             # Execution services
+            #
+            # Execution:
+            #   Executes prepared requests.
+            #
+            # Execution request:
+            #   Builds requests from active model state.
+            #
+            # Active execution:
+            #   Complete bridge from active model
+            #   to execution pipeline.
+            #
             execution=execution,
+
+            execution_request=execution_request,
+
+            execution_adapter=execution_adapter,
+
+            active_execution=active_execution,
 
             # Hardware services
             hardware_detection=hardware_detection,

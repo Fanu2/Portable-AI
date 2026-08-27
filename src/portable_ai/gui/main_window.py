@@ -3,6 +3,10 @@ from PySide6.QtWidgets import (
     QMainWindow,
 )
 
+from portable_ai.gui.widgets.application_shell_widget import (
+    ApplicationShellWidget,
+)
+
 from portable_ai.gui.widgets.dashboard_widget import (
     DashboardWidget,
 )
@@ -11,19 +15,57 @@ from portable_ai.gui.widgets.dashboard_widget import (
 class MainWindow(QMainWindow):
     """
     Main Portable-AI application window.
+
+    Responsibilities:
+        - create application window
+        - assemble GUI components
+        - connect UI context
+
+    Architecture:
+
+        ApplicationContext
+              |
+              v
+        DashboardWidget
+
+
+        UIContext
+              |
+        ┌─────┴──────────────┐
+        v                    v
+
+    ExecutionUI        AssistantUI
+                           |
+                           v
+                  WorkspaceStatusUI
+
+
+        All composed by:
+              |
+              v
+        ApplicationShellWidget
+
+    Core services remain isolated.
     """
 
     def __init__(
         self,
         context=None,
+        ui_context=None,
         title: str = "Portable-AI",
     ) -> None:
 
         super().__init__()
 
-        print("MAIN WINDOW: init")
-
+        #
+        # Core application services.
+        #
         self._context = context
+
+        #
+        # GUI service boundary.
+        #
+        self._ui_context = ui_context
 
         self.setWindowTitle(
             title
@@ -36,31 +78,18 @@ class MainWindow(QMainWindow):
 
         self._dashboard_widget = None
 
+        self._shell_widget = None
+
         self._setup_dashboard()
-
-        print(
-            "MAIN WINDOW: showing"
-        )
-
-        self.show()
-
-        print(
-            "MAIN WINDOW: shown"
-        )
 
     def _setup_dashboard(
         self,
     ) -> None:
-
-        print(
-            "DASHBOARD SETUP START"
-        )
+        """
+        Build complete application UI.
+        """
 
         if self._context is None:
-
-            print(
-                "NO CONTEXT"
-            )
 
             self.setCentralWidget(
                 QLabel(
@@ -70,39 +99,38 @@ class MainWindow(QMainWindow):
 
             return
 
-        print(
-            "CONTEXT FOUND"
-        )
-
+        #
+        # Create dashboard widget.
+        #
         if hasattr(
             self._context,
             "dashboard",
         ):
-
-            print(
-                "CREATING DASHBOARD WIDGET"
-            )
 
             self._dashboard_widget = (
                 DashboardWidget(
                     dashboard_service=(
                         self._context.dashboard
                     ),
+
                     hardware_service=getattr(
                         self._context,
                         "hardware_detection",
                         None,
                     ),
+
                     model_inventory_service=getattr(
                         self._context,
                         "model_inventory",
                         None,
                     ),
+
                     model_compatibility_service=getattr(
                         self._context,
                         "model_compatibility",
                         None,
                     ),
+
                     runtime_control_service=getattr(
                         self._context,
                         "runtime_control",
@@ -111,15 +139,7 @@ class MainWindow(QMainWindow):
                 )
             )
 
-            print(
-                "DASHBOARD CREATED"
-            )
-
         else:
-
-            print(
-                "CREATING SERVICE DASHBOARD"
-            )
 
             self._dashboard_widget = (
                 DashboardWidget(
@@ -127,14 +147,50 @@ class MainWindow(QMainWindow):
                 )
             )
 
-            print(
-                "SERVICE DASHBOARD CREATED"
-            )
+        #
+        # Extract GUI service boundaries.
+        #
+        execution_service = None
 
-        self.setCentralWidget(
-            self._dashboard_widget
+        assistant_service = None
+
+        if self._ui_context is not None:
+
+            if (
+                self._ui_context.execution
+                is not None
+            ):
+
+                execution_service = (
+                    self._ui_context.execution
+                )
+
+            if (
+                self._ui_context.assistant
+                is not None
+            ):
+
+                assistant_service = (
+                    self._ui_context.assistant
+                )
+
+        #
+        # Compose application shell.
+        #
+        # Shell owns:
+        #   - DashboardWidget
+        #   - ExecutionPanelWidget
+        #   - AssistantPanelWidget
+        #   - WorkspaceStatusWidget
+        #
+        self._shell_widget = (
+            ApplicationShellWidget(
+                self._dashboard_widget,
+                execution_service,
+                assistant_service,
+            )
         )
 
-        print(
-            "CENTRAL WIDGET SET"
+        self.setCentralWidget(
+            self._shell_widget
         )
