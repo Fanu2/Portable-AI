@@ -52,3 +52,23 @@ def test_assistant_service_exposes_assistant_context():
         context
         is not None
     )
+
+
+def test_assistant_service_session_exposes_workspace_context():
+
+    service = AssistantService()
+
+    session = (
+        service.session()
+    )
+
+    assert (
+        session.workspace
+        is not None
+    )
+
+    assert (
+        service.prompt_context()
+        .workspace_context
+        is not None
+    )
