@@ -16,11 +16,6 @@ class FakeMessage:
 class FakeAssistant:
     """
     Fake AssistantUIService.
-
-    Provides:
-        - message forwarding
-        - conversation state
-        - response generation
     """
 
     def __init__(
@@ -29,11 +24,13 @@ class FakeAssistant:
 
         self.message = None
 
+        self.generate_called = False
+
         self._history = []
 
     def send_message(
         self,
-        message,
+        message: str,
     ) -> None:
 
         self.message = message
@@ -53,7 +50,9 @@ class FakeAssistant:
 
     def generate_response(
         self,
-    ):
+    ) -> str:
+
+        self.generate_called = True
 
         response = FakeMessage(
             "Assistant",
@@ -64,10 +63,12 @@ class FakeAssistant:
             response
         )
 
-        return "assistant response"
+        return (
+            "assistant response"
+        )
 
 
-def test_conversation_widget_renders_response(
+def test_conversation_widget_generates_response(
     qtbot,
 ):
 
@@ -105,4 +106,14 @@ def test_conversation_widget_renders_response(
     assert (
         assistant.message
         == "Hello"
+    )
+
+    assert (
+        assistant.generate_called
+        is True
+    )
+
+    assert (
+        widget._input.text()
+        == ""
     )

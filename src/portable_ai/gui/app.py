@@ -29,7 +29,7 @@ from portable_ai.gui.ui_factory import (
 
 def run() -> None:
     """
-    Starts the Portable-AI GUI application.
+    Start the Portable-AI GUI application.
 
     Startup flow:
 
@@ -38,23 +38,37 @@ def run() -> None:
                 ▼
         ApplicationContext
                 |
-                ▼
-        UIFactory
-                |
-                ▼
-        UIContext
-                |
-                ▼
-        MainWindow
-                |
-                ▼
-        ApplicationShellWidget
+                ├──────────────► active execution
+                │
+                └──────────────► configured assistant
+                                      |
+                                      ▼
+                                  UIFactory
+                                      |
+                                      ▼
+                                  UIContext
+                                      |
+                                      ▼
+                                  MainWindow
+                                      |
+                                      ▼
+                            ApplicationShellWidget
 
-    Core services and GUI services remain separated.
+    Core composition remains inside
+    ApplicationFactory.
+
+    GUI composition remains inside
+    UIFactory.
+
+    The GUI does not construct:
+        - runtimes
+        - providers
+        - models
+        - assistant generation backends
     """
 
     #
-    # Create Qt application instance.
+    # Create Qt application.
     #
     app = QApplication(
         sys.argv
@@ -70,26 +84,19 @@ def run() -> None:
     )
 
     #
-    # Create core application context.
+    # Create application context.
     #
-    # Contains:
-    #   - runtime services
-    #   - model services
-    #   - execution services
-    #   - hardware services
+    # ApplicationFactory owns core
+    # dependency composition.
     #
-    context = ApplicationFactory(
-        root
-    ).create()
+    context = (
+        ApplicationFactory(
+            root
+        ).create()
+    )
 
     #
-    # Create GUI service context.
-    #
-    # UI services remain outside
-    # ApplicationContext.
-    #
-    # This keeps GUI growth isolated
-    # from core services.
+    # Extract GUI-facing dependencies.
     #
     active_execution = getattr(
         context,
@@ -97,16 +104,29 @@ def run() -> None:
         None,
     )
 
-    ui_context = UIFactory().create(
-        active_execution
+    #
+    # Use the assistant configured by
+    # ApplicationFactory.
+    #
+    assistant_service = getattr(
+        context,
+        "assistant_service",
+        None,
+    )
+
+    #
+    # Create GUI service context.
+    #
+    ui_context = (
+        UIFactory()
+        .create(
+            active_execution,
+            assistant_service=assistant_service,
+        )
     )
 
     #
     # Create main application window.
-    #
-    # Receives:
-    #   - ApplicationContext
-    #   - UIContext
     #
     window = MainWindow(
         context,

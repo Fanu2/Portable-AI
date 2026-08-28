@@ -8,6 +8,17 @@ from portable_ai.runtimes.http_transport import (
 class OllamaClient:
     """
     Client boundary for Ollama API communication.
+
+    Responsibilities:
+        - communicate with the Ollama HTTP API
+        - check runtime health
+        - discover installed models
+        - generate text
+        - generate embeddings
+
+    The caller may provide a model for each
+    generation request. Otherwise the client's
+    configured default model is used.
     """
 
     def __init__(
@@ -24,12 +35,18 @@ class OllamaClient:
     def endpoint(
         self,
     ) -> str:
+        """
+        Return the Ollama endpoint.
+        """
 
         return self._endpoint
 
     def health(
         self,
     ) -> bool:
+        """
+        Check whether Ollama is reachable.
+        """
 
         try:
 
@@ -46,6 +63,9 @@ class OllamaClient:
     def list_models(
         self,
     ) -> list[str]:
+        """
+        Return installed Ollama model names.
+        """
 
         response = self._transport.get(
             f"{self._endpoint}/api/tags"
@@ -65,17 +85,31 @@ class OllamaClient:
     def generate(
         self,
         prompt: str,
+        model: str | None = None,
         **kwargs: Any,
     ) -> str:
+        """
+        Generate a response using Ollama.
+
+        The supplied model takes priority over
+        the configured default model.
+        """
+
+        selected_model = (
+            model
+            or self._model
+        )
+
+        payload = {
+            "model": selected_model,
+            "prompt": prompt,
+            "stream": False,
+            **kwargs,
+        }
 
         response = self._transport.post(
             f"{self._endpoint}/api/generate",
-            {
-                "model": self._model,
-                "prompt": prompt,
-                "stream": False,
-                **kwargs,
-            },
+            payload,
         )
 
         return response.get(
@@ -86,12 +120,21 @@ class OllamaClient:
     def embed(
         self,
         text: str,
+        model: str | None = None,
     ) -> list[float]:
+        """
+        Generate an embedding using Ollama.
+        """
+
+        selected_model = (
+            model
+            or self._model
+        )
 
         response = self._transport.post(
             f"{self._endpoint}/api/embed",
             {
-                "model": self._model,
+                "model": selected_model,
                 "input": text,
             },
         )

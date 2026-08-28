@@ -69,6 +69,10 @@ from portable_ai.services.active_execution_service import (
     ActiveExecutionService,
 )
 
+from portable_ai.assistant.assistant_service import (
+    AssistantService,
+)
+
 @dataclass(frozen=True)
 class ApplicationContext:
     """
@@ -106,4 +110,11 @@ class ApplicationContext:
     active_execution: Optional[ActiveExecutionService] = None
 
     # Hardware services
-    hardware_detection: Optional[HardwareDetectionService] = None
+    hardware_detection: Optional[
+        HardwareDetectionService
+    ] = None
+
+    # Assistant services
+    assistant_service: Optional[
+        AssistantService
+    ] = None

@@ -14,14 +14,20 @@ class FakeExecutionService:
 
     def __init__(
         self,
-    ):
+    ) -> None:
 
+        self.executor_name = None
         self.received = None
 
     def execute(
         self,
+        executor_name,
         request,
     ):
+
+        self.executor_name = (
+            executor_name
+        )
 
         self.received = request
 
@@ -38,7 +44,7 @@ def test_execution_adapter_forwards_request():
 
     request = ExecutionRequest(
         runtime="ollama",
-        model="Qwen3.5-4B",
+        model="qwen3:4b",
         prompt="Hello",
     )
 
@@ -47,6 +53,8 @@ def test_execution_adapter_forwards_request():
     )
 
     assert result == "result"
+
+    assert execution.executor_name == "ollama"
 
     assert (
         execution.received

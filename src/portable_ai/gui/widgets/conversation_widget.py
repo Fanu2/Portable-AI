@@ -12,9 +12,10 @@ class ConversationWidget(QWidget):
     Controlled assistant conversation UI.
 
     Responsibilities:
-        - collect user message
-        - send message
-        - display response
+        - collect user messages
+        - send messages to assistant
+        - request assistant responses
+        - display conversation output
 
     Uses AssistantUIService only.
     """
@@ -31,6 +32,10 @@ class ConversationWidget(QWidget):
         )
 
         self._history = QLabel()
+
+        self._history.setWordWrap(
+            True
+        )
 
         self._input = QTextEdit()
 
@@ -67,6 +72,10 @@ class ConversationWidget(QWidget):
     def send(
         self,
     ) -> None:
+        """
+        Send user message and request
+        assistant response.
+        """
 
         message = (
             self._input
@@ -74,18 +83,28 @@ class ConversationWidget(QWidget):
             .strip()
         )
 
+        if not message:
+
+            return
+
+        self._assistant.send_message(
+            message
+        )
+
         response = (
             self._assistant
-            .send_message(
-                message
-            )
+            .generate_response()
         )
 
         if response is None:
 
-            return
+            response = (
+                "No assistant response."
+            )
 
         self._history.setText(
             f"User:\n{message}\n\n"
             f"Assistant:\n{response}"
         )
+
+        self._input.clear()

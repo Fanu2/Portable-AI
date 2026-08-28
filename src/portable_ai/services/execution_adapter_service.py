@@ -10,9 +10,14 @@ class ExecutionAdapterService:
 
     Responsibilities:
         - validate request presence
-        - forward request to ExecutionService
+        - extract the requested runtime
+        - forward execution to ExecutionService
 
-    Does not execute models directly.
+    Does not:
+        - execute models directly
+        - manage active model state
+        - select models
+        - manage runtimes
     """
 
     def __init__(
@@ -30,6 +35,11 @@ class ExecutionAdapterService:
     ):
         """
         Execute a prepared request.
+
+        The ExecutionRequest contains the
+        runtime name required by
+        ExecutionService to locate the
+        appropriate executor.
         """
 
         if request is None:
@@ -37,5 +47,6 @@ class ExecutionAdapterService:
             return None
 
         return self._execution.execute(
-            request
+            request.runtime,
+            request,
         )

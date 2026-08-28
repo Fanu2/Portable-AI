@@ -17,35 +17,41 @@ class MainWindow(QMainWindow):
     Main Portable-AI application window.
 
     Responsibilities:
-        - create application window
-        - assemble GUI components
-        - connect UI context
+        - create the application window
+        - compose top-level GUI components
+        - connect core and GUI contexts
+        - keep presentation composition separate
+          from application logic
 
     Architecture:
 
         ApplicationContext
               |
-              v
-        DashboardWidget
-
-
-        UIContext
+              +----------------------------+
+              |                            |
+              v                            v
+        DashboardWidget              UI service boundaries
+              |                            |
+              |                    +-------+-------+
+              |                    |               |
+              |                    v               v
+              |              Execution UI    Assistant UI
+              |                                      |
+              |                                      v
+              |                              Workspace Status
               |
-        ┌─────┴──────────────┐
-        v                    v
+              +-------------+
+                            |
+                            v
+                ApplicationShellWidget
 
-    ExecutionUI        AssistantUI
-                           |
-                           v
-                  WorkspaceStatusUI
+    Core services remain owned by
+    ApplicationFactory and ApplicationContext.
 
+    GUI service boundaries remain owned by
+    UIFactory and UIContext.
 
-        All composed by:
-              |
-              v
-        ApplicationShellWidget
-
-    Core services remain isolated.
+    MainWindow performs composition only.
     """
 
     def __init__(
@@ -58,15 +64,18 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         #
-        # Core application services.
+        # Core application context.
         #
         self._context = context
 
         #
-        # GUI service boundary.
+        # GUI-facing service context.
         #
         self._ui_context = ui_context
 
+        #
+        # Window configuration.
+        #
         self.setWindowTitle(
             title
         )
@@ -76,19 +85,37 @@ class MainWindow(QMainWindow):
             700,
         )
 
+        #
+        # Top-level widgets.
+        #
         self._dashboard_widget = None
 
         self._shell_widget = None
 
+        #
+        # Build application UI.
+        #
         self._setup_dashboard()
 
     def _setup_dashboard(
         self,
     ) -> None:
         """
-        Build complete application UI.
+        Build the complete application UI.
+
+        The dashboard receives core services.
+
+        Execution and assistant panels receive
+        GUI-facing service boundaries.
+
+        ApplicationShellWidget owns the final
+        visual composition.
         """
 
+        #
+        # Fallback when no application context
+        # has been supplied.
+        #
         if self._context is None:
 
             self.setCentralWidget(
@@ -100,7 +127,7 @@ class MainWindow(QMainWindow):
             return
 
         #
-        # Create dashboard widget.
+        # Create dashboard.
         #
         if hasattr(
             self._context,
@@ -131,6 +158,32 @@ class MainWindow(QMainWindow):
                         None,
                     ),
 
+                    #
+                    # Model selection capability.
+                    #
+                    # Enables model selection when
+                    # the required services are
+                    # available.
+                    #
+                    model_selection_service=getattr(
+                        self._context,
+                        "model_selection",
+                        None,
+                    ),
+
+                    #
+                    # Active model state.
+                    #
+                    # Used by:
+                    #   - ModelSelectionWidget
+                    #   - ActiveModelWidget
+                    #
+                    active_model_service=getattr(
+                        self._context,
+                        "active_model",
+                        None,
+                    ),
+
                     runtime_control_service=getattr(
                         self._context,
                         "runtime_control",
@@ -141,6 +194,9 @@ class MainWindow(QMainWindow):
 
         else:
 
+            #
+            # Backward-compatible dashboard path.
+            #
             self._dashboard_widget = (
                 DashboardWidget(
                     self._context
@@ -156,26 +212,20 @@ class MainWindow(QMainWindow):
 
         if self._ui_context is not None:
 
-            if (
-                self._ui_context.execution
-                is not None
-            ):
+            execution_service = getattr(
+                self._ui_context,
+                "execution",
+                None,
+            )
 
-                execution_service = (
-                    self._ui_context.execution
-                )
-
-            if (
-                self._ui_context.assistant
-                is not None
-            ):
-
-                assistant_service = (
-                    self._ui_context.assistant
-                )
+            assistant_service = getattr(
+                self._ui_context,
+                "assistant",
+                None,
+            )
 
         #
-        # Compose application shell.
+        # Compose final application shell.
         #
         # Shell owns:
         #   - DashboardWidget

@@ -173,10 +173,18 @@ class DashboardWidget(QWidget):
             and active_model_service is not None
         ):
 
+            #
+            # Model selection.
+            #
+            # The activation callback refreshes the
+            # dashboard immediately after the active
+            # model state changes.
+            #
             self._model_selection = (
                 ModelSelectionWidget(
                     model_inventory_service,
                     active_model_service,
+                    on_activated=self.refresh,
                 )
             )
 

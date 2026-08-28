@@ -1,5 +1,9 @@
 from pathlib import Path
 
+from portable_ai.assistant.assistant_factory import (
+    AssistantFactory,
+)
+
 from portable_ai.contracts.application_context import (
     ApplicationContext,
 )
@@ -207,6 +211,17 @@ class ApplicationFactory:
         runtime_monitor = RuntimeMonitorService(
             runtime_health,
         )
+        
+                # -------------------------------------------------
+        # Assistant layer
+        # -------------------------------------------------
+
+        assistant_service = (
+            AssistantFactory()
+            .create(
+                runtime_provider=ollama_provider
+            )
+        )
 
         # -------------------------------------------------
         # Capability layer
@@ -262,12 +277,12 @@ class ApplicationFactory:
 
             model_inventory.register(
                 ModelResource(
-                    model_name="Qwen3.5-4B",
-                    path="catalog://Qwen3.5-4B",
+                    model_name="qwen3:4b",
+                    path="ollama://qwen3:4b",
                     size_gb=2.7,
                     format="GGUF",
                     available=True,
-                    installed=False,
+                    installed=True,
                     minimum_ram_gb=4.0,
                 )
             )
@@ -409,12 +424,7 @@ class ApplicationFactory:
         # to create and execute requests.
         # -------------------------------------------------
 
-        active_execution = (
-            ActiveExecutionService(
-                execution_request,
-                execution_adapter,
-            )
-        )
+
         # -------------------------------------------------
         # Hardware and dashboard layer
         #
@@ -440,8 +450,14 @@ class ApplicationFactory:
         #
         # Central dependency container.
         #
-        # All future features should consume
-        # services through this boundary.
+        # All application-facing composition
+        # is exposed through this boundary.
+        #
+        # GUI layers receive configured
+        # services without constructing:
+        #   - runtimes
+        #   - providers
+        #   - assistant backends
         # -------------------------------------------------
 
         return ApplicationContext(
@@ -475,8 +491,8 @@ class ApplicationFactory:
             #   Builds requests from active model state.
             #
             # Active execution:
-            #   Complete bridge from active model
-            #   to execution pipeline.
+            #   Bridges active model state
+            #   to the execution pipeline.
             #
             execution=execution,
 
@@ -488,4 +504,14 @@ class ApplicationFactory:
 
             # Hardware services
             hardware_detection=hardware_detection,
+
+            # Assistant services
+            #
+            # Configured through AssistantFactory.
+            #
+            # The assistant receives its
+            # generation runtime through
+            # application dependency composition.
+            #
+            assistant_service=assistant_service,
         )

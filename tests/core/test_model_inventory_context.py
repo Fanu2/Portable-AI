@@ -30,6 +30,6 @@ def test_application_context_exposes_model_inventory(
     ]
 
     assert (
-        "Qwen3.5-4B"
+        "qwen3:4b"
         in names
     )
