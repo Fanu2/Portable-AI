@@ -2,39 +2,46 @@ from portable_ai.assistant.assistant_factory import (
     AssistantFactory,
 )
 
-from portable_ai.contracts.runtime_descriptor import (
-    RuntimeDescriptor,
+from portable_ai.assistant.assistant_service import (
+    AssistantService,
 )
 
-from portable_ai.runtimes.provider_factory import (
-    ProviderFactory,
+from portable_ai.contracts.execution_result import (
+    ExecutionResult,
 )
+
+
+class FakeActiveExecutionService:
+    """
+    Fake active execution service.
+    """
+
+    def execute(
+        self,
+        prompt,
+    ):
+
+        return ExecutionResult(
+            runtime="ollama",
+            model="qwen3:4b",
+            response=(
+                "Hello! "
+                "How can I assist you today?"
+            ),
+        )
 
 
 def test_ollama_runtime_generates_assistant_response():
 
-    descriptor = RuntimeDescriptor(
-        name="Ollama",
-        version=None,
-        available=True,
-        capabilities=frozenset(
-            {
-                "text_generation",
-            }
-        ),
-        endpoint=(
-            "http://127.0.0.1:11434"
-        ),
-    )
-
-    runtime = (
-        ProviderFactory()
-        .create(descriptor)
+    execution = (
+        FakeActiveExecutionService()
     )
 
     assistant = (
         AssistantFactory()
-        .create(runtime)
+        .create(
+            execution
+        )
     )
 
     assistant.send_message(
@@ -46,6 +53,7 @@ def test_ollama_runtime_generates_assistant_response():
     )
 
     assert response is not None
+
     assert isinstance(
         response,
         str,

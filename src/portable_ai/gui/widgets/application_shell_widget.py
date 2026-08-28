@@ -63,17 +63,18 @@ class ApplicationShellWidget(QWidget):
         #
         # Dashboard area.
         #
-        # Dashboard can contain:
-        #   - hardware
-        #   - models
-        #   - runtime information
-        #
-        # Keep it scrollable.
+        # Scrollable because dashboard
+        # contains hardware, models,
+        # runtime information.
         #
         dashboard_scroll = QScrollArea()
 
         dashboard_scroll.setWidgetResizable(
             True
+        )
+
+        dashboard_scroll.setMinimumHeight(
+            180
         )
 
         dashboard_scroll.setWidget(
@@ -82,7 +83,7 @@ class ApplicationShellWidget(QWidget):
 
         layout.addWidget(
             dashboard_scroll,
-            2,
+            1,
         )
 
         #
@@ -98,6 +99,10 @@ class ApplicationShellWidget(QWidget):
                 )
             )
 
+            self._execution_panel.setMinimumHeight(
+                180
+            )
+
             layout.addWidget(
                 self._execution_panel,
                 1,
@@ -106,8 +111,7 @@ class ApplicationShellWidget(QWidget):
         #
         # Assistant UI.
         #
-        # Conversation and assistant
-        # interaction boundary.
+        # Primary user interaction area.
         #
         if assistant_service is not None:
 
@@ -115,6 +119,10 @@ class ApplicationShellWidget(QWidget):
                 AssistantPanelWidget(
                     assistant_service
                 )
+            )
+
+            self._assistant_panel.setMinimumHeight(
+                300
             )
 
             layout.addWidget(
@@ -125,7 +133,7 @@ class ApplicationShellWidget(QWidget):
             #
             # Workspace awareness.
             #
-            # Displays workspace state only.
+            # Displays state only.
             #
             self._workspace_status = (
                 WorkspaceStatusWidget(

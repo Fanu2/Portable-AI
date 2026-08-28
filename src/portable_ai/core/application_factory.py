@@ -211,17 +211,7 @@ class ApplicationFactory:
         runtime_monitor = RuntimeMonitorService(
             runtime_health,
         )
-        
-                # -------------------------------------------------
-        # Assistant layer
-        # -------------------------------------------------
 
-        assistant_service = (
-            AssistantFactory()
-            .create(
-                runtime_provider=ollama_provider
-            )
-        )
 
         # -------------------------------------------------
         # Capability layer
@@ -414,6 +404,21 @@ class ApplicationFactory:
             ActiveExecutionService(
                 execution_request,
                 execution_adapter,
+            )
+        )
+
+        # -------------------------------------------------
+        # Assistant layer
+        #
+        # Assistant uses the active execution pipeline.
+        #
+        # It does not call runtimes directly.
+        # -------------------------------------------------
+
+        assistant_service = (
+            AssistantFactory()
+            .create(
+                active_execution_service=active_execution
             )
         )
 

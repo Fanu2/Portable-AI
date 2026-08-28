@@ -40,7 +40,8 @@ def test_execution_panel_executes_prompt(
     widget.execute()
 
     assert (
-        widget._result.text()
+        widget._result
+        .toPlainText()
         == "AI response"
     )
 

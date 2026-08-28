@@ -48,12 +48,22 @@ class ConversationWidget(QWidget):
         #
         # Conversation display.
         #
+        # Read-only assistant conversation view.
+        #
         self._display = QTextEdit()
 
         self._display.setReadOnly(
             True
         )
 
+        #
+        # Preserve visible conversation area
+        # when composed with dashboard
+        # and execution panels.
+        #
+        self._display.setMinimumHeight(
+            180
+        )
         #
         # Input.
         #
@@ -97,7 +107,7 @@ class ConversationWidget(QWidget):
         )
 
         self.setMinimumHeight(
-            180
+            300
         )
 
         #
@@ -171,6 +181,12 @@ class ConversationWidget(QWidget):
         """
         Append message to display.
         """
+
+        print(
+            "DISPLAY APPEND:",
+            sender,
+            content,
+        )
 
         self._display.append(
             self._format_message(
@@ -308,15 +324,15 @@ class ConversationWidget(QWidget):
 
         try:
 
+            self._set_generating(
+                True
+            )
+
             self._assistant.send_message(
                 message
             )
 
             self.refresh_history()
-
-            self._set_generating(
-                True
-            )
 
             self._show_status(
                 "Thinking..."
@@ -327,13 +343,15 @@ class ConversationWidget(QWidget):
                 .generate_response()
             )
 
-            self.refresh_history()
+            if response:
 
-            if response is not None:
+                self.refresh_history()
+
+            else:
 
                 self._append_message(
                     "Assistant",
-                    response,
+                    "No response.",
                 )
 
         except Exception as error:

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QLabel,
+    QLineEdit,
     QPushButton,
     QTextEdit,
     QVBoxLayout,
@@ -14,9 +14,14 @@ class ExecutionPanelWidget(QWidget):
     Responsibilities:
         - collect prompt
         - submit execution request
-        - display result
+        - display execution response
 
     Uses UI service boundary only.
+
+    Does not:
+        - manage runtimes
+        - select models
+        - execute directly
     """
 
     def __init__(
@@ -30,22 +35,44 @@ class ExecutionPanelWidget(QWidget):
             execution_service
         )
 
-        self._prompt = QTextEdit()
+        #
+        # Prompt input.
+        #
+        # QLineEdit is retained because
+        # this is the existing UI contract.
+        #
+        self._prompt = QLineEdit()
 
         self._prompt.setPlaceholderText(
             "Enter prompt..."
         )
 
+        #
+        # Execute action.
+        #
         self._execute_button = QPushButton(
             "Execute"
         )
 
-        self._result = QLabel()
+        #
+        # Execution response display.
+        #
+        # QTextEdit allows readable
+        # multi-line AI responses.
+        #
+        self._result = QTextEdit()
 
-        self._execute_button.clicked.connect(
-            self.execute
+        self._result.setReadOnly(
+            True
         )
 
+        self._result.setMinimumHeight(
+            120
+        )
+
+        #
+        # Layout.
+        #
         layout = QVBoxLayout()
 
         layout.addWidget(
@@ -64,30 +91,55 @@ class ExecutionPanelWidget(QWidget):
             layout
         )
 
+        #
+        # Events.
+        #
+        self._execute_button.clicked.connect(
+            self.execute
+        )
+
     def execute(
         self,
     ) -> None:
+        """
+        Execute current prompt.
+
+        Uses execution UI boundary.
+        """
 
         prompt = (
             self._prompt
-            .toPlainText()
+            .text()
             .strip()
         )
 
+        if not prompt:
+
+            self._result.setPlainText(
+                "Enter a prompt."
+            )
+
+            return
+
         result = (
-            self._execution.execute(
+            self._execution
+            .execute(
                 prompt
             )
         )
 
         if result is None:
 
-            self._result.setText(
-                "No execution result"
+            self._result.setPlainText(
+                "No execution result."
             )
 
             return
 
-        self._result.setText(
+        #
+        # UI service returns the response
+        # text boundary.
+        #
+        self._result.setPlainText(
             str(result)
         )

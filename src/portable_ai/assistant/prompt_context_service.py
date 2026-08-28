@@ -11,13 +11,10 @@ class PromptContext:
     """
     Immutable prompt preparation context.
 
-    Contains information that may be used
-    when constructing future assistant prompts.
-
-    Currently stores:
+    Contains:
         - conversation context
         - user context
-        - retrieval context placeholder
+        - retrieval context
         - workspace context
 
     Does not:
@@ -48,7 +45,6 @@ class PromptContextService:
         - call models
         - execute requests
         - retrieve documents
-        - make decisions
     """
 
     def __init__(
@@ -60,9 +56,6 @@ class PromptContextService:
     def get_context(
         self,
     ) -> PromptContext:
-        """
-        Return current prompt context.
-        """
 
         return self._context
 
@@ -70,105 +63,46 @@ class PromptContextService:
         self,
         conversation: list,
     ) -> None:
-        """
-        Store conversation context.
-        """
 
         self._context = PromptContext(
             conversation=conversation,
-
-            user_context=(
-                self._context.user_context
-            ),
-
-            retrieval_context=(
-                self._context.retrieval_context
-            ),
-
-            workspace_context=(
-                self._context.workspace_context
-            ),
+            user_context=self._context.user_context,
+            retrieval_context=self._context.retrieval_context,
+            workspace_context=self._context.workspace_context,
         )
 
     def set_user_context(
         self,
         user_context: dict,
     ) -> None:
-        """
-        Store user context.
-        """
 
         self._context = PromptContext(
-            conversation=(
-                self._context.conversation
-            ),
-
+            conversation=self._context.conversation,
             user_context=user_context,
-
-            retrieval_context=(
-                self._context.retrieval_context
-            ),
-
-            workspace_context=(
-                self._context.workspace_context
-            ),
+            retrieval_context=self._context.retrieval_context,
+            workspace_context=self._context.workspace_context,
         )
 
     def set_retrieval_context(
         self,
         retrieval_context: list,
     ) -> None:
-        """
-        Store future retrieval context.
-
-        Placeholder only.
-
-        Retrieval system remains separate.
-        """
 
         self._context = PromptContext(
-            conversation=(
-                self._context.conversation
-            ),
-
-            user_context=(
-                self._context.user_context
-            ),
-
+            conversation=self._context.conversation,
+            user_context=self._context.user_context,
             retrieval_context=retrieval_context,
-
-            workspace_context=(
-                self._context.workspace_context
-            ),
+            workspace_context=self._context.workspace_context,
         )
 
     def set_workspace_context(
         self,
         workspace_context: WorkspaceContext,
     ) -> None:
-        """
-        Store workspace context.
-
-        Boundary only.
-
-        Does not:
-            - load documents
-            - perform retrieval
-            - manage workspace storage
-        """
 
         self._context = PromptContext(
-            conversation=(
-                self._context.conversation
-            ),
-
-            user_context=(
-                self._context.user_context
-            ),
-
-            retrieval_context=(
-                self._context.retrieval_context
-            ),
-
+            conversation=self._context.conversation,
+            user_context=self._context.user_context,
+            retrieval_context=self._context.retrieval_context,
             workspace_context=workspace_context,
         )

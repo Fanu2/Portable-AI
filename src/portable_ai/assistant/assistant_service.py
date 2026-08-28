@@ -146,16 +146,34 @@ class AssistantService:
         """
         Generate assistant response.
 
-        Uses only response generation boundary.
+        Generated responses become part
+        of assistant conversation state.
         """
 
-        return (
+        response = (
             self._response_generation
             .generate(
                 self._prompt_context
                 .get_context()
             )
         )
+
+        if response:
+
+            self._conversation.add_message(
+                "assistant",
+                response,
+            )
+
+            self._prompt_context.set_conversation(
+                self._conversation.history()
+            )
+
+            self._session.conversation = (
+                self._conversation.history()
+            )
+
+        return response
 
     def conversation_history(
         self,

@@ -6,8 +6,8 @@ from portable_ai.assistant.response_generation_service import (
     ResponseGenerationService,
 )
 
-from portable_ai.assistant.providers.runtime_assistant_provider import (
-    RuntimeAssistantProvider,
+from portable_ai.assistant.providers.execution_assistant_provider import (
+    ExecutionAssistantProvider,
 )
 
 
@@ -17,7 +17,7 @@ class AssistantFactory:
 
     Responsibilities:
         - assemble assistant dependencies
-        - connect assistant to runtime provider
+        - connect assistant to execution layer
 
     Does not:
         - manage UI
@@ -28,12 +28,12 @@ class AssistantFactory:
 
     def create(
         self,
-        runtime_provider=None,
+        active_execution_service=None,
     ) -> AssistantService:
         """
         Create assistant service.
 
-        Runtime provider is optional.
+        Active execution service is optional.
 
         When absent:
             assistant remains available
@@ -42,11 +42,11 @@ class AssistantFactory:
 
         provider = None
 
-        if runtime_provider is not None:
+        if active_execution_service is not None:
 
             provider = (
-                RuntimeAssistantProvider(
-                    runtime_provider
+                ExecutionAssistantProvider(
+                    active_execution_service
                 )
             )
 

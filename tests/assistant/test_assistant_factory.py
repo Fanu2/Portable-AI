@@ -6,17 +6,26 @@ from portable_ai.assistant.assistant_service import (
     AssistantService,
 )
 
+from portable_ai.contracts.execution_result import (
+    ExecutionResult,
+)
 
-class FakeRuntimeProvider:
+
+class FakeActiveExecutionService:
     """
-    Fake runtime provider.
+    Fake active execution service.
     """
 
-    def generate(
+    def execute(
         self,
         prompt,
     ):
-        return "response"
+
+        return ExecutionResult(
+            runtime="ollama",
+            model="qwen3:4b",
+            response="response",
+        )
 
 
 def test_assistant_factory_creates_default_assistant():
@@ -31,14 +40,14 @@ def test_assistant_factory_creates_default_assistant():
     )
 
 
-def test_assistant_factory_creates_runtime_backed_assistant():
+def test_assistant_factory_creates_execution_backed_assistant():
 
     factory = AssistantFactory()
 
-    runtime = FakeRuntimeProvider()
+    execution = FakeActiveExecutionService()
 
     assistant = factory.create(
-        runtime
+        execution
     )
 
     assert isinstance(
@@ -50,8 +59,9 @@ def test_assistant_factory_creates_runtime_backed_assistant():
         assistant.generate_response()
     )
 
-    # No prompt context yet,
-    # so generation boundary exists
+    # No prompt context yet.
+    # Generation boundary exists,
+    # but no conversation has been added.
     assert response is None or isinstance(
         response,
         str,

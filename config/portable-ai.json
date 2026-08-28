@@ -1,0 +1,7 @@
+{
+  "active_model": {
+    "model_name": "qwen3:4b",
+    "runtime_name": "ollama",
+    "capability": null
+  }
+}
