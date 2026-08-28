@@ -101,6 +101,7 @@ class AssistantService:
             - conversation state
             - prompt context
             - session state
+            - retrieval context when configured
         """
 
         self._conversation.add_message(
@@ -115,6 +116,12 @@ class AssistantService:
         self._session.conversation = (
             self._conversation.history()
         )
+
+        if self._retrieval_context is not None:
+
+            self.retrieve_context(
+                message
+            )
 
     def retrieve_context(
         self,

@@ -39,7 +39,7 @@ class FakeRetrievalProvider(
         ]
 
 
-def test_assistant_service_updates_retrieval_context():
+def test_assistant_service_automatically_updates_retrieval_context():
 
     prompt_context = PromptContextService()
 
@@ -57,7 +57,7 @@ def test_assistant_service_updates_retrieval_context():
         retrieval_context_service=retrieval_context,
     )
 
-    assistant.retrieve_context(
+    assistant.send_message(
         "hello"
     )
 
