@@ -15,6 +15,7 @@ class RuntimeAssistantProvider(
 
     Responsibilities:
         - adapt assistant context
+        - build runtime prompt
         - delegate generation to runtime
 
     Does not:
@@ -40,13 +41,81 @@ class RuntimeAssistantProvider(
         Generate assistant response.
         """
 
-        prompt = str(
-            context
-        )
+        if isinstance(
+            context,
+            str,
+        ):
+            prompt = context
+
+        else:
+            prompt = (
+                self._build_prompt(
+                    context
+                )
+            )
 
         return (
             self._runtime_provider
             .generate(
                 prompt
             )
+        )
+
+    def _build_prompt(
+        self,
+        context,
+    ) -> str:
+        """
+        Convert assistant prompt context
+        into runtime prompt text.
+        """
+
+        parts = []
+
+        if context.conversation:
+
+            parts.append(
+                "Conversation:\n"
+                + str(
+                    context.conversation
+                )
+            )
+
+        if context.user_context:
+
+            parts.append(
+                "User Context:\n"
+                + str(
+                    context.user_context
+                )
+            )
+
+        if context.retrieval_context:
+
+            retrieved = "\n".join(
+                result.content
+                for result
+                in context.retrieval_context
+            )
+
+            parts.append(
+                "Retrieved Context:\n"
+                + retrieved
+            )
+
+        if context.workspace_context:
+
+            parts.append(
+                "Workspace Context:\n"
+                + str(
+                    context.workspace_context
+                )
+            )
+
+        if not parts:
+
+            return ""
+
+        return "\n\n".join(
+            parts
         )
