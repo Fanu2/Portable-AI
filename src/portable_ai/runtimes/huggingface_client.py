@@ -1,3 +1,5 @@
+from importlib.util import find_spec
+
 from transformers import pipeline
 
 
@@ -62,13 +64,15 @@ class HuggingFaceClient:
     def health(
         self,
     ) -> bool:
+        """
+        Check whether the local Hugging Face
+        execution backend is available.
 
-        try:
+        Model loading is intentionally not
+        performed during the health check.
+        """
 
-            self.load()
-
-            return True
-
-        except Exception:
-
-            return False
+        return (
+            find_spec("transformers") is not None
+            and find_spec("torch") is not None
+        )
