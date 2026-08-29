@@ -11,3 +11,8 @@ __pycache__/
 
 # IDE
 .geany/
+
+# Python package build artifacts
+*.egg-info/
+build/
+dist/
