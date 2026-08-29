@@ -12,6 +12,10 @@ from portable_ai.config.local_config_manager import (
     LocalConfigManager,
 )
 
+from portable_ai.storage.local_storage_manager import (
+    LocalStorageManager,
+)
+
 from portable_ai.contracts.application_context import (
     ApplicationContext,
 )
@@ -160,6 +164,9 @@ from portable_ai.services.runtime_sync_service import (
     RuntimeSyncService,
 )
 
+from portable_ai.services.storage_service import (
+    StorageService,
+)
 class ApplicationFactory:
     """
     Creates the Portable-AI application context.
@@ -192,6 +199,20 @@ class ApplicationFactory:
         configuration = ConfigurationService(
             config_manager,
             ConfigLayer(),
+        )
+
+        # -------------------------------------------------
+        # Portable storage layer
+        # -------------------------------------------------
+
+        storage_manager = LocalStorageManager(
+            self._root
+        )
+
+        storage_manager.initialize()
+
+        storage = StorageService(
+            storage_manager
         )
 
         # -------------------------------------------------
@@ -588,7 +609,7 @@ class ApplicationFactory:
         return ApplicationContext(
             configuration=configuration,
 
-            storage=None,
+            storage=storage,
 
             hardware=None,
 

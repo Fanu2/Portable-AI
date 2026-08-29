@@ -201,3 +201,23 @@ def test_application_factory_exposes_runtime_sync(
         context.runtime_sync
         is not None
     )
+
+def test_application_factory_exposes_portable_storage(
+    tmp_path,
+):
+
+    factory = ApplicationFactory(
+        Path(tmp_path)
+    )
+
+    context = factory.create()
+
+    assert context.storage is not None
+
+    assert context.storage.root() == Path(
+        tmp_path
+    )
+
+    assert context.storage.models().exists()
+    assert context.storage.data().exists()
+    assert context.storage.config().exists()
