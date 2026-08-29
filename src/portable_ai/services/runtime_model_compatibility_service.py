@@ -37,6 +37,12 @@ class RuntimeModelCompatibilityService:
         if model is None or runtime is None:
             return False
 
+        if (
+            model.source_runtime is not None
+            and model.source_runtime != runtime_name
+        ):
+            return False
+
         capabilities = runtime.capabilities
 
         if callable(capabilities):

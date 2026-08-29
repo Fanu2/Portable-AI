@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import (
     QComboBox,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -13,6 +14,7 @@ class RuntimeSelectorWidget(QWidget):
         self,
         runtimes: list[str],
     ) -> None:
+
         super().__init__()
 
         self._selector = QComboBox()
@@ -21,13 +23,25 @@ class RuntimeSelectorWidget(QWidget):
             runtimes
         )
 
+        layout = QVBoxLayout()
+
+        layout.addWidget(
+            self._selector
+        )
+
+        self.setLayout(
+            layout
+        )
+
     def selected_runtime(self) -> str:
+
         return self._selector.currentText()
 
     def on_changed(
         self,
         callback,
     ) -> None:
+
         self._selector.currentTextChanged.connect(
             callback
         )

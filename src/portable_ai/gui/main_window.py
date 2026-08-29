@@ -152,6 +152,12 @@ class MainWindow(QMainWindow):
                         None,
                     ),
 
+                    model_query_service=getattr(
+                        self._context,
+                        "model_query",
+                        None,
+                    ),
+
                     model_compatibility_service=getattr(
                         self._context,
                         "model_compatibility",

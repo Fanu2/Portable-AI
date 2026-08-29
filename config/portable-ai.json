@@ -1,7 +1,7 @@
 {
   "active_model": {
-    "model_name": "qwen3:4b",
-    "runtime_name": "ollama",
+    "model_name": "sshleifer/tiny-gpt2",
+    "runtime_name": "huggingface",
     "capability": null
   }
 }

@@ -29,6 +29,16 @@ class FakeRuntime:
         }
 
 
+class FakeHuggingFaceRuntime:
+
+    name = "huggingface"
+
+    def capabilities(self):
+        return {
+            "text_generation",
+        }
+
+
 def create_service():
 
     models = ModelRegistry()
@@ -50,10 +60,31 @@ def create_service():
         )
     )
 
+    models.register(
+        ModelDescriptor(
+            name="tiny-gpt2",
+            version="runtime",
+            format="unknown",
+            quantization=None,
+            size_gb=0.0,
+            license="unknown",
+            capabilities=frozenset(
+                {
+                    "text_generation",
+                }
+            ),
+            source_runtime="huggingface",
+        )
+    )
+
     runtimes = RuntimeRegistry()
 
     runtimes.register(
         FakeRuntime()
+    )
+
+    runtimes.register(
+        FakeHuggingFaceRuntime()
     )
 
     return RuntimeModelSelectionService(
@@ -129,4 +160,76 @@ def test_runtime_model_selection_with_hardware():
     assert (
         result.reason
         == "matched capability, runtime, and hardware"
+    )
+
+
+def test_huggingface_model_selected_for_huggingface():
+
+    service = create_service()
+
+    result = service.select(
+        "text_generation",
+        "huggingface",
+    )
+
+    assert result is not None
+
+    assert (
+        result.model.name
+        == "tiny-gpt2"
+    )
+
+    assert (
+        result.runtime
+        == "huggingface"
+    )
+
+
+def test_huggingface_model_not_selected_for_ollama():
+
+    service = create_service()
+
+    result = service.select(
+        "text_generation",
+        "ollama",
+    )
+
+    assert result is not None
+
+    assert (
+        result.model.name
+        == "Qwen3.5-4B"
+    )
+
+    assert (
+        result.runtime
+        == "ollama"
+    )
+
+
+def test_huggingface_model_selection_with_hardware():
+
+    service = create_service()
+
+    hardware = HardwareInfo(
+        cpu_cores=8,
+        ram_gb=16.0,
+    )
+
+    result = service.select_with_hardware(
+        "text_generation",
+        "huggingface",
+        hardware,
+    )
+
+    assert result is not None
+
+    assert (
+        result.model.name
+        == "tiny-gpt2"
+    )
+
+    assert (
+        result.runtime
+        == "huggingface"
     )

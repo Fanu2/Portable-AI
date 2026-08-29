@@ -5,12 +5,16 @@ from portable_ai.gui.widgets.model_selection_widget import (
 
 class FakeModel:
 
-    model_name = "Qwen3.5-4B"
+    name = "Qwen3.5-4B"
+
+    source_runtime = None
 
 
-class FakeInventory:
+class FakeModelQueryService:
 
-    def all(self):
+    def all_models(
+        self,
+    ):
 
         return [
             FakeModel()
@@ -38,7 +42,7 @@ def test_model_selection_widget_activates_model(
     service = FakeActiveModel()
 
     widget = ModelSelectionWidget(
-        FakeInventory(),
+        FakeModelQueryService(),
         service,
     )
 

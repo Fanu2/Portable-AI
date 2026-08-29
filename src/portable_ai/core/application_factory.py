@@ -4,6 +4,14 @@ from portable_ai.assistant.assistant_factory import (
     AssistantFactory,
 )
 
+from portable_ai.config.config_layer import (
+    ConfigLayer,
+)
+
+from portable_ai.config.local_config_manager import (
+    LocalConfigManager,
+)
+
 from portable_ai.contracts.application_context import (
     ApplicationContext,
 )
@@ -12,40 +20,12 @@ from portable_ai.contracts.model_resource import (
     ModelResource,
 )
 
-from portable_ai.config.local_config_manager import (
-    LocalConfigManager,
-)
-
-from portable_ai.config.config_layer import (
-    ConfigLayer,
-)
-
-from portable_ai.services.configuration_service import (
-    ConfigurationService,
-)
-
-from portable_ai.runtimes.runtime_provider_registry import (
-    RuntimeProviderRegistry,
-)
-
-from portable_ai.runtimes.http_transport import (
-    HttpTransport,
-)
-
-from portable_ai.runtimes.ollama_client import (
-    OllamaClient,
-)
-
-from portable_ai.runtimes.ollama_provider import (
-    OllamaRuntimeProvider,
-)
-
-from portable_ai.runtimes.ollama_executor import (
-    OllamaExecutor,
-)
-
 from portable_ai.models.capability_registry import (
     CapabilityRegistry,
+)
+
+from portable_ai.models.executor_registry import (
+    ExecutorRegistry,
 )
 
 from portable_ai.models.model_registry import (
@@ -56,68 +36,76 @@ from portable_ai.models.runtime_registry import (
     RuntimeRegistry,
 )
 
-from portable_ai.models.executor_registry import (
-    ExecutorRegistry,
-)
-
 from portable_ai.models.catalog.runtime_catalog import (
     RUNTIME_DEFINITIONS,
 )
 
-from portable_ai.services.capability_service import (
-    CapabilityService,
+from portable_ai.runtimes.http_transport import (
+    HttpTransport,
 )
 
-from portable_ai.services.model_catalog_service import (
-    ModelCatalogService,
+from portable_ai.runtimes.ollama_client import (
+    OllamaClient,
 )
 
-from portable_ai.services.model_inventory_service import (
-    ModelInventoryService,
+from portable_ai.runtimes.ollama_executor import (
+    OllamaExecutor,
 )
 
-from portable_ai.services.model_compatibility_service import (
-    ModelCompatibilityService,
+from portable_ai.runtimes.ollama_provider import (
+    OllamaRuntimeProvider,
 )
 
-from portable_ai.services.runtime_service import (
-    RuntimeService,
+from portable_ai.runtimes.runtime_provider_registry import (
+    RuntimeProviderRegistry,
 )
 
-from portable_ai.services.runtime_status_service import (
-    RuntimeStatusService,
+from portable_ai.runtimes.huggingface_client import (
+    HuggingFaceClient,
 )
 
-from portable_ai.services.runtime_health_service import (
-    RuntimeHealthService,
+from portable_ai.runtimes.huggingface_executor import (
+    HuggingFaceExecutor,
 )
 
-from portable_ai.services.runtime_monitor_service import (
-    RuntimeMonitorService,
+from portable_ai.runtimes.huggingface_provider import (
+    HuggingFaceRuntimeProvider,
 )
 
-from portable_ai.services.runtime_model_selection_service import (
-    RuntimeModelSelectionService,
+from portable_ai.services.active_execution_service import (
+    ActiveExecutionService,
 )
 
 from portable_ai.services.active_model_service import (
     ActiveModelService,
 )
 
-from portable_ai.services.execution_service import (
-    ExecutionService,
+from portable_ai.services.capability_service import (
+    CapabilityService,
 )
 
-from portable_ai.services.execution_request_service import (
-    ExecutionRequestService,
+from portable_ai.services.configuration_service import (
+    ConfigurationService,
+)
+
+from portable_ai.services.dashboard_service import (
+    DashboardService,
 )
 
 from portable_ai.services.execution_adapter_service import (
     ExecutionAdapterService,
 )
 
+from portable_ai.services.execution_request_service import (
+    ExecutionRequestService,
+)
+
 from portable_ai.services.execution_result_validator import (
     ExecutionResultValidator,
+)
+
+from portable_ai.services.execution_service import (
+    ExecutionService,
 )
 
 from portable_ai.services.hardware_detection_service import (
@@ -128,14 +116,49 @@ from portable_ai.services.hardware_model_compatibility_service import (
     HardwareModelCompatibilityService,
 )
 
-from portable_ai.services.dashboard_service import (
-    DashboardService,
+from portable_ai.services.model_catalog_service import (
+    ModelCatalogService,
 )
 
-from portable_ai.services.active_execution_service import (
-    ActiveExecutionService,
+from portable_ai.services.model_compatibility_service import (
+    ModelCompatibilityService,
 )
 
+from portable_ai.services.model_inventory_service import (
+    ModelInventoryService,
+)
+
+from portable_ai.services.model_query_service import (
+    ModelQueryService,
+)
+
+from portable_ai.services.runtime_health_service import (
+    RuntimeHealthService,
+)
+
+from portable_ai.services.runtime_model_importer import (
+    RuntimeModelImporter,
+)
+
+from portable_ai.services.runtime_model_selection_service import (
+    RuntimeModelSelectionService,
+)
+
+from portable_ai.services.runtime_monitor_service import (
+    RuntimeMonitorService,
+)
+
+from portable_ai.services.runtime_service import (
+    RuntimeService,
+)
+
+from portable_ai.services.runtime_status_service import (
+    RuntimeStatusService,
+)
+
+from portable_ai.services.runtime_sync_service import (
+    RuntimeSyncService,
+)
 
 class ApplicationFactory:
     """
@@ -177,6 +200,10 @@ class ApplicationFactory:
 
         runtime_registry = RuntimeProviderRegistry()
 
+        # -------------------------------------------------
+        # Ollama runtime
+        # -------------------------------------------------
+
         ollama_model = configuration.get(
             "assistant.model",
             "qwen3:4b",
@@ -196,6 +223,34 @@ class ApplicationFactory:
             ollama_provider,
         )
 
+        # -------------------------------------------------
+        # Hugging Face runtime
+        # -------------------------------------------------
+
+        huggingface_model = configuration.get(
+            "huggingface.model",
+            "sshleifer/tiny-gpt2",
+        )
+
+        huggingface_client = HuggingFaceClient(
+            model=huggingface_model,
+        )
+
+        huggingface_provider = (
+            HuggingFaceRuntimeProvider(
+                huggingface_client
+            )
+        )
+
+        runtime_registry.register(
+            "huggingface",
+            huggingface_provider,
+        )
+
+        # -------------------------------------------------
+        # Runtime services
+        # -------------------------------------------------
+
         runtime = RuntimeService(
             runtime_registry,
         )
@@ -211,7 +266,6 @@ class ApplicationFactory:
         runtime_monitor = RuntimeMonitorService(
             runtime_health,
         )
-
 
         # -------------------------------------------------
         # Capability layer
@@ -252,8 +306,63 @@ class ApplicationFactory:
 
         model_catalog.load_catalog()
 
-        model_inventory = ModelInventoryService()
+        model_query = ModelQueryService(
+            model_registry,
+        )
+        
+        # -------------------------------------------------
+        # Runtime model synchronization
+        #
+        # Discover models available from configured
+        # runtimes and merge them into the Portable-AI
+        # model registry.
+        #
+        # Existing catalog metadata is preserved while
+        # runtime provenance is added.
+        # -------------------------------------------------
 
+        runtime_model_importer = (
+            RuntimeModelImporter(
+                model_registry
+            )
+        )
+
+        runtime_sync = RuntimeSyncService(
+            runtime_model_importer
+        )
+
+        # -------------------------------------------------
+        # Ollama model synchronization
+        # -------------------------------------------------
+
+        ollama_models = (
+            ollama_provider.discover()
+            .get(
+                "models",
+                [],
+            )
+        )
+
+        runtime_sync.sync(
+            "ollama",
+            ollama_models,
+        )
+
+        # -------------------------------------------------
+        # Hugging Face model synchronization
+        #
+        # Hugging Face currently exposes the configured
+        # runtime model.
+        # -------------------------------------------------
+
+        runtime_sync.sync(
+            "huggingface",
+            [
+                huggingface_client.model()
+            ],
+        )
+
+        model_inventory = ModelInventoryService()
         # Scan local model storage
         model_inventory.scan(
             [
@@ -359,17 +468,29 @@ class ApplicationFactory:
         #   - Runtime executor registration
         #   - Model execution requests
         #   - Result validation
-        #
-        # Active model selection will connect
-        # to this layer in P4.5.
         # -------------------------------------------------
 
         executor_registry = ExecutorRegistry()
+
+        # -------------------------------------------------
+        # Ollama executor
+        # -------------------------------------------------
 
         executor_registry.register(
             "ollama",
             OllamaExecutor(
                 ollama_provider,
+            ),
+        )
+
+        # -------------------------------------------------
+        # Hugging Face executor
+        # -------------------------------------------------
+
+        executor_registry.register(
+            "huggingface",
+            HuggingFaceExecutor(
+                huggingface_provider,
             ),
         )
 
@@ -464,7 +585,6 @@ class ApplicationFactory:
         #   - providers
         #   - assistant backends
         # -------------------------------------------------
-
         return ApplicationContext(
             configuration=configuration,
 
@@ -483,40 +603,21 @@ class ApplicationFactory:
             # Model services
             model_catalog=model_catalog,
             model_inventory=model_inventory,
+            model_query=model_query,
             model_compatibility=model_compatibility,
             model_selection=model_selection,
+            runtime_sync=runtime_sync,
             active_model=active_model,
 
             # Execution services
-            #
-            # Execution:
-            #   Executes prepared requests.
-            #
-            # Execution request:
-            #   Builds requests from active model state.
-            #
-            # Active execution:
-            #   Bridges active model state
-            #   to the execution pipeline.
-            #
             execution=execution,
-
             execution_request=execution_request,
-
             execution_adapter=execution_adapter,
-
             active_execution=active_execution,
 
             # Hardware services
             hardware_detection=hardware_detection,
 
             # Assistant services
-            #
-            # Configured through AssistantFactory.
-            #
-            # The assistant receives its
-            # generation runtime through
-            # application dependency composition.
-            #
             assistant_service=assistant_service,
         )

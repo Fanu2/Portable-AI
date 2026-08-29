@@ -59,7 +59,22 @@ class RuntimeModelSelectionService:
             )
         )
 
-        for model in models:
+        matching_models = [
+            model
+            for model in models
+            if model.source_runtime == runtime_name
+        ]
+
+        generic_models = [
+            model
+            for model in models
+            if model.source_runtime is None
+        ]
+
+        for model in (
+            matching_models
+            + generic_models
+        ):
 
             if self._compatibility.can_execute(
                 model.name,
@@ -91,7 +106,22 @@ class RuntimeModelSelectionService:
             )
         )
 
-        for model in models:
+        matching_models = [
+            model
+            for model in models
+            if model.source_runtime == runtime_name
+        ]
+
+        generic_models = [
+            model
+            for model in models
+            if model.source_runtime is None
+        ]
+
+        for model in (
+            matching_models
+            + generic_models
+        ):
 
             if not self._compatibility.can_execute(
                 model.name,

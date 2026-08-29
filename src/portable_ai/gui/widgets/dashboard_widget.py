@@ -21,6 +21,10 @@ from portable_ai.gui.widgets.model_management_widget import (
     ModelManagementWidget,
 )
 
+from portable_ai.gui.widgets.model_registry_widget import (
+    ModelRegistryWidget,
+)
+
 from portable_ai.gui.widgets.model_selection_widget import (
     ModelSelectionWidget,
 )
@@ -60,6 +64,7 @@ class DashboardWidget(QWidget):
         dashboard_service,
         hardware_service=None,
         model_inventory_service=None,
+        model_query_service=None,
         model_compatibility_service=None,
         model_selection_service=None,
         active_model_service=None,
@@ -73,6 +78,7 @@ class DashboardWidget(QWidget):
         # Child widgets
         self._hardware = None
         self._models = None
+        self._model_registry = None
         self._model_management = None
         self._model_selection = None
         self._active_model = None
@@ -113,11 +119,6 @@ class DashboardWidget(QWidget):
 
         # -------------------------------------------------
         # Hardware intelligence
-        #
-        # Shows:
-        #   CPU
-        #   RAM
-        #   Storage
         # -------------------------------------------------
 
         if hardware_service is not None:
@@ -133,18 +134,86 @@ class DashboardWidget(QWidget):
         # -------------------------------------------------
         # Model intelligence
         #
+        # Registry:
+        #   Catalog and runtime-discovered models.
+        #
         # Inventory:
-        #   Available models
+        #   Local model resources.
         #
         # Management:
-        #   Compatibility status
+        #   Compatibility status.
         #
         # Selection:
-        #   User-selected active model
+        #   User-selected active model.
         #
         # Active:
-        #   Current model state
+        #   Current model state.
         # -------------------------------------------------
+
+        if model_query_service is not None:
+
+            self._model_registry = (
+                ModelRegistryWidget(
+                    model_query_service
+                )
+            )
+
+            self._layout.addWidget(
+                self._model_registry
+            )
+
+        if model_inventory_service is not None:
+
+            self._models = ModelInventoryWidget(
+                model_inventory_service
+            )
+
+            self._layout.addWidget(
+                self._models
+            )
+
+            self._model_management = (
+                ModelManagementWidget(
+                    model_inventory_service,
+                    model_compatibility_service,
+                    hardware_service,
+                )
+            )
+
+            self._layout.addWidget(
+                self._model_management
+            )
+
+        # -------------------------------------------------
+        # Model intelligence
+        #
+        # Registry:
+        #   Catalog and runtime-discovered models.
+        #
+        # Inventory:
+        #   Local model resources.
+        #
+        # Management:
+        #   Compatibility status.
+        #
+        # Selection:
+        #   User-selected active model.
+        #
+        # Active:
+        #   Current model state.
+        # -------------------------------------------------
+
+        if model_query_service is not None:
+
+            self._model_registry = (
+                ModelRegistryWidget(
+                    model_query_service
+                )
+            )
+
+            self._layout.addWidget(
+                self._model_registry
+            )
 
         if model_inventory_service is not None:
 
@@ -169,21 +238,17 @@ class DashboardWidget(QWidget):
             )
 
         if (
-            model_inventory_service is not None
+            model_query_service is not None
             and active_model_service is not None
         ):
 
-            #
-            # Model selection.
-            #
-            # The activation callback refreshes the
-            # dashboard immediately after the active
-            # model state changes.
-            #
             self._model_selection = (
                 ModelSelectionWidget(
-                    model_inventory_service,
+                    model_query_service,
                     active_model_service,
+                    runtime_name=(
+                        self._selector.selected_runtime()
+                    ),
                     on_activated=self.refresh,
                 )
             )
@@ -203,7 +268,6 @@ class DashboardWidget(QWidget):
             self._layout.addWidget(
                 self._active_model
             )
-
         # -------------------------------------------------
         # Runtime control
         # -------------------------------------------------
@@ -337,6 +401,86 @@ class DashboardWidget(QWidget):
         if self._hardware is not None:
 
             self._hardware.refresh()
+
+        if self._model_registry is not None:
+
+            self._model_registry.refresh()
+
+        if self._models is not None:
+
+            self._models.refresh()
+
+        if self._model_management is not None:
+
+            self._model_management.refresh()
+
+        if self._model_selection is not None:
+
+            self._model_selection.set_runtime(
+                selected
+            )
+
+        if self._active_model is not None:
+
+            self._active_model.refresh()
+
+        if self._runtime_control is not None:
+
+            self._runtime_control.refresh()
+        # -------------------------------------------------
+        # Runtime detail panel
+        # -------------------------------------------------
+
+        selected = (
+            self._selector.selected_runtime()
+        )
+
+        snapshot = (
+            self._service.runtime_health_snapshot(
+                selected
+            )
+        )
+
+        metadata = (
+            self._service.runtime_metadata(
+                selected
+            )
+        )
+
+        details = {
+            "health": snapshot.health.value,
+            "checked_at": snapshot.checked_at,
+            **metadata,
+        }
+
+        if self._details is None:
+
+            self._details = RuntimeDetailsWidget(
+                selected,
+                details,
+            )
+
+            self._layout.addWidget(
+                self._details
+            )
+
+        else:
+
+            self._details.refresh(
+                details
+            )
+
+        # -------------------------------------------------
+        # Refresh child widgets
+        # -------------------------------------------------
+
+        if self._hardware is not None:
+
+            self._hardware.refresh()
+
+        if self._model_registry is not None:
+
+            self._model_registry.refresh()
 
         if self._models is not None:
 

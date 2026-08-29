@@ -187,3 +187,17 @@ def test_application_factory_uses_configured_assistant_model(
         ollama._client._model
         == "qwen3:4b"
     )
+def test_application_factory_exposes_runtime_sync(
+    tmp_path,
+):
+
+    factory = ApplicationFactory(
+        Path(tmp_path)
+    )
+
+    context = factory.create()
+
+    assert (
+        context.runtime_sync
+        is not None
+    )
