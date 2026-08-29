@@ -69,6 +69,10 @@ from portable_ai.services.runtime_monitor_service import (
     RuntimeMonitorService,
 )
 
+from portable_ai.services.runtime_readiness_service import (
+    RuntimeReadinessService,
+)
+
 from portable_ai.services.runtime_service import (
     RuntimeService,
 )
@@ -100,6 +104,10 @@ class ApplicationContext:
     dashboard: Optional[DashboardService] = None
 
     monitor: Optional[RuntimeMonitorService] = None
+
+    readiness: Optional[
+        RuntimeReadinessService
+    ] = None
 
     # Capability services
     capabilities: Optional[CapabilityService] = None

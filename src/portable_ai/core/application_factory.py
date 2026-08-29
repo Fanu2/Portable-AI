@@ -167,6 +167,11 @@ from portable_ai.services.runtime_sync_service import (
 from portable_ai.services.storage_service import (
     StorageService,
 )
+
+from portable_ai.services.runtime_readiness_service import (
+    RuntimeReadinessService,
+)
+
 class ApplicationFactory:
     """
     Creates the Portable-AI application context.
@@ -285,6 +290,10 @@ class ApplicationFactory:
         )
 
         runtime_monitor = RuntimeMonitorService(
+            runtime_health,
+        )
+
+        runtime_readiness = RuntimeReadinessService(
             runtime_health,
         )
 
@@ -617,7 +626,8 @@ class ApplicationFactory:
             runtime=runtime,
             dashboard=dashboard,
             monitor=runtime_monitor,
-
+            readiness=runtime_readiness,
+            
             # Capability services
             capabilities=capability_service,
 
