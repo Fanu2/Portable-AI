@@ -545,9 +545,10 @@ class ApplicationFactory:
         )
         
                 # -------------------------------------------------
+        # -------------------------------------------------
         # Active execution layer
         #
-        # Uses the active model state
+        # Uses the active model state and runtime readiness
         # to execute prepared requests.
         # -------------------------------------------------
 
@@ -555,6 +556,7 @@ class ApplicationFactory:
             ActiveExecutionService(
                 execution_request,
                 execution_adapter,
+                runtime_readiness,
             )
         )
 

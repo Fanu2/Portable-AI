@@ -5,6 +5,7 @@ class ActiveExecutionService:
 
     Responsibilities:
         - create execution request
+        - verify runtime readiness
         - forward request to execution adapter
 
     Does not select models.
@@ -15,6 +16,7 @@ class ActiveExecutionService:
         self,
         request_service,
         adapter_service,
+        readiness_service=None,
     ) -> None:
 
         self._request_service = (
@@ -23,6 +25,10 @@ class ActiveExecutionService:
 
         self._adapter = (
             adapter_service
+        )
+
+        self._readiness = (
+            readiness_service
         )
 
     def execute(
@@ -43,6 +49,18 @@ class ActiveExecutionService:
         if request is None:
 
             return None
+
+        if self._readiness is not None:
+
+            readiness = (
+                self._readiness.check(
+                    request.runtime
+                )
+            )
+
+            if not readiness.ready:
+
+                return None
 
         return self._adapter.execute(
             request

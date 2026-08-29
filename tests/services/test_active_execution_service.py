@@ -3,6 +3,16 @@ from portable_ai.services.active_execution_service import (
 )
 
 
+class FakeRequest:
+
+    def __init__(
+        self,
+        runtime,
+    ):
+
+        self.runtime = runtime
+
+
 class FakeRequestService:
 
     def create_request(
@@ -10,7 +20,9 @@ class FakeRequestService:
         prompt,
     ):
 
-        return prompt
+        return FakeRequest(
+            "ollama"
+        )
 
 
 class FakeAdapterService:
@@ -31,6 +43,20 @@ class FakeAdapterService:
         return "ok"
 
 
+class FakeReadinessService:
+
+    def check(
+        self,
+        runtime_name,
+    ):
+
+        class Readiness:
+
+            ready = True
+
+        return Readiness()
+
+
 def test_active_execution_executes():
 
     adapter = FakeAdapterService()
@@ -38,6 +64,7 @@ def test_active_execution_executes():
     service = ActiveExecutionService(
         FakeRequestService(),
         adapter,
+        FakeReadinessService(),
     )
 
     result = service.execute(
@@ -48,5 +75,40 @@ def test_active_execution_executes():
 
     assert (
         adapter.received
-        == "Hello"
+        is not None
+    )
+
+class FakeOfflineReadinessService:
+
+    def check(
+        self,
+        runtime_name,
+    ):
+
+        class Readiness:
+
+            ready = False
+
+        return Readiness()
+
+
+def test_active_execution_does_not_execute_when_runtime_not_ready():
+
+    adapter = FakeAdapterService()
+
+    service = ActiveExecutionService(
+        FakeRequestService(),
+        adapter,
+        FakeOfflineReadinessService(),
+    )
+
+    result = service.execute(
+        "Hello"
+    )
+
+    assert result is None
+
+    assert (
+        adapter.received
+        is None
     )
